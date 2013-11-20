@@ -52,6 +52,13 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
      * Creates new form MissionMonitor
      */
     public MissionMonitor() {
+        LOGGER.info("java.class.path: " + System.getProperty("java.class.path"));
+        LOGGER.info("java.library.path: " + System.getProperty("java.library.path"));
+        LOGGER.info("java.ext.dirs: " + System.getProperty("java.ext.dirs"));
+        LOGGER.info("java.util.logging.config.file: " + System.getProperty("java.util.logging.config.file"));
+        LOGGER.info("domainConfiguration:\n" + DomainConfigManager.getInstance().domainConfiguration.toString());
+        LOGGER.info("domainConfiguration:\n" + DomainConfigManager.getInstance().domainConfiguration.toVerboseString());
+        
         initComponents();
 
         (new FrameManager()).setVisible(true);

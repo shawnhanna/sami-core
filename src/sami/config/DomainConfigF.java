@@ -76,6 +76,7 @@ public class DomainConfigF extends javax.swing.JFrame {
             oos = new ObjectOutputStream(new FileOutputStream(configLocation));
             oos.writeObject(domainConfiguration);
             LOGGER.info("Saved: " + configLocation.toString());
+            LOGGER.info("Saved: " + domainConfiguration.toVerboseString());
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -126,6 +127,8 @@ public class DomainConfigF extends javax.swing.JFrame {
                 } catch (AccessControlException e) {
                     LOGGER.severe("Failed to save preferences");
                 }
+                LOGGER.info("Read: " + configLocation.toString());
+                LOGGER.info("Read: " + domainConfiguration.toVerboseString());;
                 nameTF.setText(domainConfiguration.domainName);
                 descriptionTA.setText(domainConfiguration.domainDescription);
                 agentTF.setText(domainConfiguration.agentTreeFilePath);

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -101,7 +102,10 @@ public class DomainConfig implements java.io.Serializable {
         if (agentTreeFilePath != null) {
             File file = new File(agentTreeFilePath);
             if (file != null) {
-                agentTree = parseTreeFile(file);
+                DefaultMutableTreeNode temp = parseTreeFile(file);
+                if (temp != null) {
+                    agentTree = temp;
+                }
             } else {
                 LOGGER.warning("Could not open agent list file path: \"" + agentTreeFilePath + "\"");
             }
@@ -111,7 +115,10 @@ public class DomainConfig implements java.io.Serializable {
         if (assetTreeFilePath != null) {
             File file = new File(assetTreeFilePath);
             if (file != null) {
-                assetTree = parseTreeFile(file);
+                DefaultMutableTreeNode temp = parseTreeFile(file);
+                if (temp != null) {
+                    assetTree = temp;
+                }
             } else {
                 LOGGER.warning("Could not open asset list file path: \"" + assetTreeFilePath + "\"");
             }
@@ -121,7 +128,10 @@ public class DomainConfig implements java.io.Serializable {
         if (componentGeneratorListFilePath != null) {
             File file = new File(componentGeneratorListFilePath);
             if (file != null) {
-                componentGeneratorList = parseListFile(file);
+                ArrayList<String> temp = parseListFile(file);
+                if (temp != null) {
+                    componentGeneratorList = temp;
+                }
             } else {
                 LOGGER.warning("Could not open component generator list file path: \"" + componentGeneratorListFilePath + "\"");
             }
@@ -131,7 +141,10 @@ public class DomainConfig implements java.io.Serializable {
         if (eventTreeFilePath != null) {
             File file = new File(eventTreeFilePath);
             if (file != null) {
-                eventTree = parseTreeFile(file);
+                DefaultMutableTreeNode temp = parseTreeFile(file);
+                if (temp != null) {
+                    eventTree = temp;
+                }
             } else {
                 LOGGER.warning("Could not open event list file path: \"" + eventTreeFilePath + "\"");
             }
@@ -141,7 +154,10 @@ public class DomainConfig implements java.io.Serializable {
         if (eventHandlerMappingFilePath != null) {
             File file = new File(eventHandlerMappingFilePath);
             if (file != null) {
-                eventHandlerMapping = parseMappingFile(file);
+                Hashtable<String, String> temp = parseMappingFile(file);
+                if (temp != null) {
+                    eventHandlerMapping = temp;
+                }
             } else {
                 LOGGER.warning("Could not open event handler mapping file path: \"" + eventHandlerMappingFilePath + "\"");
             }
@@ -151,7 +167,10 @@ public class DomainConfig implements java.io.Serializable {
         if (markupTreeFilePath != null) {
             File file = new File(markupTreeFilePath);
             if (file != null) {
-                markupTree = parseTreeFile(file);
+                DefaultMutableTreeNode temp = parseTreeFile(file);
+                if (temp != null) {
+                    markupTree = temp;
+                }
             } else {
                 LOGGER.warning("Could not open markup list file path: \"" + markupTreeFilePath + "\"");
             }
@@ -161,7 +180,10 @@ public class DomainConfig implements java.io.Serializable {
         if (serverListFilePath != null) {
             File file = new File(serverListFilePath);
             if (file != null) {
-                serverList = parseListFile(file);
+                ArrayList<String> temp = parseListFile(file);
+                if (temp != null) {
+                    serverList = temp;
+                }
             } else {
                 LOGGER.warning("Could not open server list file path: \"" + serverListFilePath + "\"");
             }
@@ -171,7 +193,10 @@ public class DomainConfig implements java.io.Serializable {
         if (taskTreeFilePath != null) {
             File file = new File(taskTreeFilePath);
             if (file != null) {
-                taskTree = parseTreeFile(file);
+                DefaultMutableTreeNode temp = parseTreeFile(file);
+                if (temp != null) {
+                    taskTree = temp;
+                }
             } else {
                 LOGGER.warning("Could not open task list file path: \"" + taskTreeFilePath + "\"");
             }
@@ -181,7 +206,10 @@ public class DomainConfig implements java.io.Serializable {
         if (uiListFilePath != null) {
             File file = new File(uiListFilePath);
             if (file != null) {
-                uiList = parseListFile(file);
+                ArrayList<String> temp = parseListFile(file);
+                if (temp != null) {
+                    uiList = temp;
+                }
             } else {
                 LOGGER.warning("Could not open ui list file path: \"" + uiListFilePath + "\"");
             }
@@ -230,7 +258,8 @@ public class DomainConfig implements java.io.Serializable {
                 }
             }
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            LOGGER.warning("Reading file failed: " + listFile.getAbsolutePath());
+            return null;
         }
 
         return list;
@@ -263,7 +292,8 @@ public class DomainConfig implements java.io.Serializable {
                 }
             }
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            LOGGER.warning("Reading file failed: " + mappingFile.getAbsolutePath());
+            return null;
         }
 
         return mapping;
@@ -365,6 +395,7 @@ public class DomainConfig implements java.io.Serializable {
             }
         } catch (IOException ioe) {
             LOGGER.warning("Reading file failed: " + treeFile.getAbsolutePath());
+            return null;
         }
 
         return treeRoot;
@@ -400,6 +431,56 @@ public class DomainConfig implements java.io.Serializable {
             ret += "Can't handle node of type " + node.getClass() + "\n";
         }
         return ret;
+    }
+
+    public String getLeafString(DefaultMutableTreeNode parentNode) {
+        String leafs = "[";
+        Enumeration enumeration = parentNode.depthFirstEnumeration();
+        while (enumeration.hasMoreElements()) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) enumeration.nextElement();
+            if (node.isLeaf()) {
+                leafs += node.toString() + ", ";
+            }
+        }
+        leafs += "]";
+        return leafs;
+    }
+
+    public String toString() {
+        return "DomainConfig: " + domainName
+                + "\n\t" + domainDescription
+                + "\n\t" + agentTreeFilePath
+                + "\n\t" + assetTreeFilePath
+                + "\n\t" + componentGeneratorListFilePath
+                + "\n\t" + eventTreeFilePath
+                + "\n\t" + eventHandlerMappingFilePath
+                + "\n\t" + markupTreeFilePath
+                + "\n\t" + serverListFilePath
+                + "\n\t" + taskTreeFilePath
+                + "\n\t" + uiListFilePath;
+    }
+
+    public String toVerboseString() {
+        return "DomainConfig: " + domainName
+                + "\n\t" + domainDescription
+                + "\n\t" + agentTreeFilePath
+                + "\n\t\t" + getLeafString(agentTree)
+                + "\n\t" + assetTreeFilePath
+                + "\n\t\t" + getLeafString(assetTree)
+                + "\n\t" + componentGeneratorListFilePath
+                + "\n\t\t" + componentGeneratorList.toString()
+                + "\n\t" + eventTreeFilePath
+                + "\n\t\t" + getLeafString(eventTree)
+                + "\n\t" + eventHandlerMappingFilePath
+                + "\n\t\t" + eventHandlerMapping.toString()
+                + "\n\t" + markupTreeFilePath
+                + "\n\t\t" + getLeafString(markupTree)
+                + "\n\t" + serverListFilePath
+                + "\n\t\t" + serverList.toString()
+                + "\n\t" + taskTreeFilePath
+                + "\n\t\t" + getLeafString(taskTree)
+                + "\n\t" + uiListFilePath
+                + "\n\t\t" + uiList.toString();
     }
 
     public class LeafNode extends DefaultMutableTreeNode implements Serializable {

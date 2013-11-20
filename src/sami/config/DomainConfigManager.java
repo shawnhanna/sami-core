@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.security.AccessControlException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
 import javax.swing.JFileChooser;
@@ -70,6 +71,9 @@ public class DomainConfigManager {
         try {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
             dc = (DomainConfig) ois.readObject();
+            dc.reload();
+            LOGGER.log(Level.INFO, dc.toVerboseString());
+            
             // Update Preferences
             try {
                 Preferences p = Preferences.userRoot();
