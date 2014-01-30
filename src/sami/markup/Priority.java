@@ -15,6 +15,8 @@ public class Priority extends Markup {
     };
     public static final Map<Ranking, Integer> priorityToInt;
     public static final Map<Integer, Ranking> intToPriority;
+    
+    public Ranking ranking;
 
     static {
         priorityToInt = new Hashtable<Ranking, Integer>();
@@ -30,6 +32,10 @@ public class Priority extends Markup {
     }
 
     public Priority() {
+    }
+
+    public Priority(Ranking ranking) {
+        this.ranking = ranking;
     }
 
     public static int getPriority(Ranking priority) {

@@ -2,8 +2,6 @@ package sami.event;
 
 import java.util.ArrayList;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import sami.markup.Markup;
 
 /**
@@ -63,10 +61,10 @@ public class Event {
             copy.missionId = missionId;
             return copy;
         } catch (InstantiationException ex) {
-            Logger.getLogger(Event.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
             return null;
         } catch (IllegalAccessException ex) {
-            Logger.getLogger(Event.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
             return null;
         }
     }

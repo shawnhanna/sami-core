@@ -8,6 +8,7 @@ import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import sami.markup.ReflectedMarkupSpecification;
 
 /**
  *
@@ -190,9 +191,9 @@ public class Place extends Vertex {
                     iae.printStackTrace();
                 }
                 if (GuiConfig.DRAW_MARKUPS) {
-                    for (Markup markup : eventSpec.getMarkups()) {
-                        tag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM: " + markup.getClass().getSimpleName() + "</font><br>";
-                        shortTag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM:  " + shorten(markup.getClass().getSimpleName(), GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
+                    for (ReflectedMarkupSpecification markupSpec : eventSpec.getMarkupSpecs()) {
+                        tag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM: " + markupSpec.getClass().getSimpleName() + "</font><br>";
+                        shortTag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM:  " + shorten(markupSpec.getClass().getSimpleName(), GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
                     }
                 }
             }

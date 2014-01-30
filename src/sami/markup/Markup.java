@@ -1,6 +1,5 @@
 package sami.markup;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -8,25 +7,16 @@ import java.util.HashMap;
  *
  * @author nbb
  */
-public class Markup implements java.io.Serializable {
+public class Markup {
 
-    static final long serialVersionUID = 1L;
-    private ArrayList<Field> requiredFields = new ArrayList<Field>();
-    private HashMap<Field, Object> fieldValues = new HashMap<Field, Object>();
+    // List of enum fields for which an enum option should be selected
+    public static final ArrayList<String> enumFieldNames = new ArrayList<String>();
+    // Description for each enum field
+    public static final HashMap<String, String> enumNameToDescription = new HashMap<String, String>();
+    // Mapping from enum value to the MarkupOption field it requires
+    public static final HashMap<Enum, String> enumValueToFieldName = new HashMap<Enum, String>();
 
     public Markup() {
-    }
-
-    public HashMap<Field, Object> getFieldValues() {
-        return fieldValues;
-    }
-
-    public void setFieldValues(HashMap<Field, Object> fieldValues) {
-        this.fieldValues = fieldValues;
-    }
-
-    public ArrayList<Field> getRequiredFields() {
-        return requiredFields;
     }
 
     public Markup copy() {

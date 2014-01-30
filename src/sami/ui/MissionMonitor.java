@@ -76,6 +76,7 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
 
         for (String className : DomainConfigManager.getInstance().domainConfiguration.uiList) {
             try {
+                LOGGER.info("Initializing UI class: " + className);
                 Class uiClass = Class.forName(className);
                 Object uiElement = uiClass.getConstructor(new Class[]{}).newInstance();
                 if (uiElement instanceof UiFrame) {

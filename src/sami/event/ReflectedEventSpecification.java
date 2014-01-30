@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sami.markup.Markup;
+import sami.markup.ReflectedMarkupSpecification;
 
 /**
  * Stores a reflected InputEvent or OutputEvent classname and any parameters for
@@ -27,18 +27,20 @@ import sami.markup.Markup;
  */
 public class ReflectedEventSpecification implements java.io.Serializable {
 
-    private final static Logger LOGGER = Logger.getLogger(ReflectedEventSpecification.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(ReflectedEventSpecification.class.getName());
     public static final String NONE = "@None";
     static final long serialVersionUID = 0L;
     private static OutputStream testSink;
     private static ObjectOutputStream testStream;
-    ArrayList<Markup> markups = new ArrayList<Markup>();
-    // Serializable version of fieldNameToObjectInst using HashMaps and Strings to represent object
-    HashMap<String, Object> fieldNameToSerialDefinition = new HashMap<String, Object>();
-    String className = null;
     //@todo need to decide if we should have to handle non-serializable classes or not...making the below unneeded - right now we assume everything is serializable
     // Non-serializable lookup from field name to object representing its defined/undefined variable name or value
     transient HashMap<String, Object> fieldNameToTransDefinition = new HashMap<String, Object>();
+    // Event's reflected markup specs
+    protected ArrayList<ReflectedMarkupSpecification> markupSpecs = new ArrayList<ReflectedMarkupSpecification>();
+    // Serializable version of fieldNameToObjectInst using HashMaps and Strings to represent object
+    protected HashMap<String, Object> fieldNameToSerialDefinition = new HashMap<String, Object>();
+    // Event's class name
+    protected final String className;
 
     public ReflectedEventSpecification(String className) {
         this.className = className;
@@ -126,6 +128,14 @@ public class ReflectedEventSpecification implements java.io.Serializable {
         return serialLookup;
     }
 
+    public ArrayList<ReflectedMarkupSpecification> getMarkupSpecs() {
+        return markupSpecs;
+    }
+
+    public void setMarkupSpecs(ArrayList<ReflectedMarkupSpecification> markups) {
+        this.markupSpecs = markups;
+    }
+
     public HashMap<String, Object> getFieldDefinitions() {
         return fieldNameToTransDefinition;
     }
@@ -136,14 +146,6 @@ public class ReflectedEventSpecification implements java.io.Serializable {
 
     public void addFieldDefinition(String fieldName, Object fieldValue) {
         fieldNameToTransDefinition.put(fieldName, fieldValue);
-    }
-
-    public ArrayList<Markup> getMarkups() {
-        return markups;
-    }
-
-    public void setMarkups(ArrayList<Markup> markups) {
-        this.markups = markups;
     }
 
     public String getClassName() {
@@ -176,20 +178,6 @@ public class ReflectedEventSpecification implements java.io.Serializable {
 
     public String toString() {
         return className.substring(className.lastIndexOf(".") + 1);
-    }
-
-    public ArrayList<Field> getRequiredFields() {
-        ArrayList<Field> fields = new ArrayList<Field>();
-        try {
-            Class c = Class.forName(className);
-            LOGGER.log(Level.FINE, "Looking for fields of " + c + " " + c.getDeclaredFields());
-            for (Field field : c.getDeclaredFields()) {
-                fields.add(field);
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Problem getting fields for " + className + ", Exception: " + e);
-        }
-        return fields;
     }
 
     /**
@@ -242,8 +230,6 @@ public class ReflectedEventSpecification implements java.io.Serializable {
                         field.setLong(event, ((Long) definition).longValue());
                     } else {
                         field.set(event, definition);
-//                        field.set(event, new Area2D(new ArrayList<Location>()));
-//                        field.set(event, new Area2D(((Area2D)fieldNameToObject.get(definition)).getPoints()));
                         if (definition != null && field.get(event) == null) {
                             LOGGER.log(Level.SEVERE, "Instantiation of field " + field.getName() + " on Event " + event.toString() + " failed!");
                         }

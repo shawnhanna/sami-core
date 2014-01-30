@@ -1,6 +1,8 @@
 package sami.uilanguage.toui;
 
+import java.util.ArrayList;
 import java.util.UUID;
+import sami.markup.Markup;
 
 /**
  * Super class of all messages to UI
@@ -8,8 +10,9 @@ import java.util.UUID;
  * @author pscerri
  */
 public abstract class ToUiMessage {
-
+    
     protected int priority;
+    protected ArrayList<Markup> markups = new ArrayList<Markup>();
     protected UUID relevantOutputEventId;
     protected UUID missionId;
 
@@ -19,6 +22,14 @@ public abstract class ToUiMessage {
 
     public void setMissionId(UUID missionId) {
         this.missionId = missionId;
+    }
+
+    public ArrayList<Markup> getMarkups() {
+        return markups;
+    }
+
+    public void setMarkups(ArrayList<Markup> markups) {
+        this.markups = markups;
     }
 
     public int getPriority() {

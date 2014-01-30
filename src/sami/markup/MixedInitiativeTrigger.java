@@ -8,7 +8,7 @@ public class MixedInitiativeTrigger extends Markup {
 
     public enum Trigger {
 
-        NEVER, TIMEOUT, PERCENTILE, POSITION, ALWAYS
+        NEVER, TIMEOUT, PERCENTILE, POSITION, IMMEDIATELY
     };
     private double percentileThreshold = -1;
     private int positionThreshold = -1;
