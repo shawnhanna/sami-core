@@ -131,7 +131,7 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
             String line;
             while ((line = br.readLine()) != null) {
                 if (line.matches(pattern.toString())) {
-                    line.trim();
+                    line = line.trim();
                     String[] pairing = splitOnString(line, "\"");
                     if (pairing.length == 4) {
                         uiClass = pairing[1];
@@ -300,9 +300,9 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
                 for (Object m : projectSpec.getMissionPlans()) {
                     missionListModel.addElement(m);
                 }
-                for (UiFrame uiFrame : uiFrames) {
-                    uiFrame.setGUISpec(projectSpec.getGuiElements());
-                }
+//                for (UiFrame uiFrame : uiFrames) {
+//                    uiFrame.setGUISpec(projectSpec.getGuiElements());
+//                }
                 Preferences p = Preferences.userRoot();
                 try {
                     p.put(LAST_DRM_FILE, specLocation.getAbsolutePath());

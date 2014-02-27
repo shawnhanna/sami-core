@@ -5,6 +5,7 @@ import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.SparseMultigraph;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import sami.event.Event;
 import sami.event.InputEvent;
 import sami.event.OutputEvent;
 import sami.event.ReflectedEventSpecification;
+import sami.markup.Markup;
 import sami.mission.TokenSpecification.TokenType;
 
 /**
@@ -98,7 +100,7 @@ public class MissionPlanSpecification implements java.io.Serializable {
             Vertex vertexCopy = vertexMap.get(vertex);
             ArrayList<ReflectedEventSpecification> listCopy = new ArrayList<ReflectedEventSpecification>();
             for (ReflectedEventSpecification spec : missionSpec.vertexToEventSpecListMap.get(vertex)) {
-                listCopy.add(spec.copySpecial());
+                listCopy.add(spec.copy());
             }
             vertexToEventSpecListMap.put(vertexCopy, listCopy);
         }
@@ -291,9 +293,9 @@ public class MissionPlanSpecification implements java.io.Serializable {
         LOGGER.info("Instantiating mission: " + name + " with id: " + missionId);
         // @todo MissionPlanSpecification getInstantiatedStart does not allow parameterization or reuse
         for (Vertex vertex : vertexToEventSpecListMap.keySet()) {
-            ArrayList<ReflectedEventSpecification> events = vertexToEventSpecListMap.get(vertex);
-            for (ReflectedEventSpecification reflectedEventSpecification : events) {
-                Event e = reflectedEventSpecification.instantiate();
+            ArrayList<ReflectedEventSpecification> eventSpecs = vertexToEventSpecListMap.get(vertex);
+            for (ReflectedEventSpecification eventSpec : eventSpecs) {
+                Event e = eventSpec.instantiate();
                 e.setMissionId(missionId);
                 if (vertex instanceof Transition && e instanceof InputEvent) {
                     ((Transition) vertex).addInputEvent((InputEvent) e);
@@ -433,7 +435,9 @@ public class MissionPlanSpecification implements java.io.Serializable {
         try {
             ois.defaultReadObject();
             createTokenSpecLists();
-        } catch (Exception e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

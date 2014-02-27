@@ -6,6 +6,7 @@
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -22,19 +23,27 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
+          <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="32767" attributes="0"/>
-              <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                  <Component id="descriptionL" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" max="-2" attributes="0">
                   <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="messageTF" min="-2" pref="399" max="-2" attributes="0"/>
+                          <Component id="messageL" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="32767" attributes="0"/>
+                      <Component id="messageB" min="-2" pref="93" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="descriptionL" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="agentL" min="-2" max="-2" attributes="0"/>
                           <Component id="agentTF" min="-2" pref="399" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="agentB" pref="93" max="32767" attributes="0"/>
+                      <Component id="agentB" max="32767" attributes="0"/>
                   </Group>
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="assetTF" alignment="0" min="-2" pref="399" max="-2" attributes="0"/>
                           <Component id="assetL" alignment="0" min="-2" max="-2" attributes="0"/>
@@ -50,7 +59,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="componentB" max="32767" attributes="0"/>
                   </Group>
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="eventL" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="eventTF" alignment="0" min="-2" pref="399" max="-2" attributes="0"/>
@@ -58,7 +67,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="eventB" max="32767" attributes="0"/>
                   </Group>
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="handlerL" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="handlerTF" alignment="0" min="-2" pref="399" max="-2" attributes="0"/>
@@ -66,7 +75,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="handlerB" max="32767" attributes="0"/>
                   </Group>
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="markupL" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="markupTF" alignment="0" min="-2" pref="399" max="-2" attributes="0"/>
@@ -74,7 +83,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="markupB" max="32767" attributes="0"/>
                   </Group>
-                  <Group type="102" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="serverL" min="-2" max="-2" attributes="0"/>
                           <Component id="serverTF" min="-2" pref="399" max="-2" attributes="0"/>
@@ -144,7 +153,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="assetTF" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="assetB" alignment="1" min="-2" pref="50" max="-2" attributes="0"/>
+                  <Component id="assetB" min="-2" pref="50" max="-2" attributes="0"/>
               </Group>
               <EmptySpace min="-2" pref="10" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" max="-2" attributes="0">
@@ -154,6 +163,15 @@
                       <Component id="componentTF" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="componentB" max="32767" attributes="0"/>
+              </Group>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Component id="messageL" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="messageTF" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="messageB" min="-2" pref="52" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
@@ -409,6 +427,21 @@
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="completeB">
+    </Component>
+    <Component class="javax.swing.JButton" name="messageB">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Select"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="messageBActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JTextField" name="messageTF">
+    </Component>
+    <Component class="javax.swing.JLabel" name="messageL">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="From UI message generator list file:"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

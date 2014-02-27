@@ -17,6 +17,7 @@ import sami.config.DomainConfigManager;
 import sami.event.AbortMission;
 import sami.event.AbortMissionReceived;
 import sami.event.BlockingInputEvent;
+import sami.event.Event;
 import sami.event.GeneratedEventListenerInt;
 import sami.event.InputEvent;
 import sami.event.MissingParamsReceived;
@@ -25,6 +26,7 @@ import sami.event.OutputEvent;
 import sami.event.ReflectedEventSpecification;
 import sami.gui.GuiConfig;
 import sami.handler.EventHandlerInt;
+import sami.markup.Markup;
 import sami.mission.Edge;
 import sami.mission.MissionPlanSpecification;
 import sami.mission.Place;
@@ -192,6 +194,11 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             LOGGER.log(Level.INFO, "No missing params, instantiating plan");
             if (!mSpec.isInstantiated()) {
                 mSpec.instantiate(missionId);
+
+                ////
+                printGraph(mSpec);
+                ////
+
             }
         }
 
@@ -935,7 +942,6 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         activeInputEvents.clear();
 
         // Put token in end place?
-
     }
 
     public void processGeneratedEvent(InputEvent generatedEvent) {
@@ -1371,5 +1377,15 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     @Override
     public void planAborted(PlanManager planManager) {
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    public void printGraph(MissionPlanSpecification mSpec) {
+        System.out.println("### startPlace: " + startPlace.getName());
+        for (OutputEvent oe : startPlace.getOutputEvents()) {
+            System.out.println("###\t : " + oe.getClass().getSimpleName());
+            for (Markup m : oe.getMarkups()) {
+                System.out.println("###\t\t : " + m.getClass().getSimpleName());
+            }
+        }
     }
 }

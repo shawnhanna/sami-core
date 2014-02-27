@@ -5,6 +5,7 @@ import sami.event.ReflectedEventSpecification;
 import sami.gui.GuiConfig;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -123,27 +124,23 @@ public class Transition extends Vertex {
         if (GuiConfig.DRAW_EVENTS) {
             for (ReflectedEventSpecification eventSpec : eventSpecs) {
                 try {
-                    String className = eventSpec.getClassName();
-                    Object eventInstance = Class.forName(className).newInstance();
-                    String simpleName = eventInstance.getClass().getSimpleName();
-                    if (eventInstance instanceof InputEvent) {
+                    Class eventClass = Class.forName(eventSpec.getClassName());
+                    String simpleName = eventClass.getSimpleName();
+                    if (InputEvent.class.isAssignableFrom(eventClass)) {
                         tag += "<font color=" + GuiConfig.INPUT_EVENT_TEXT_COLOR + ">I: " + simpleName + "</font><br>";
                         shortTag += "<font color=" + GuiConfig.INPUT_EVENT_TEXT_COLOR + ">I: " + shorten(simpleName, GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
                     } else {
                         continue;
                     }
+                    if (GuiConfig.DRAW_MARKUPS) {
+                        for (ReflectedMarkupSpecification markupSpec : eventSpec.getMarkupSpecs()) {
+                            Class markupClass = Class.forName(markupSpec.getClassName());
+                            tag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM: " + markupClass.getSimpleName() + "</font><br>";
+                            shortTag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM:  " + shorten(markupClass.getSimpleName(), GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
+                        }
+                    }
                 } catch (ClassNotFoundException cnfe) {
                     cnfe.printStackTrace();
-                } catch (InstantiationException ie) {
-                    ie.printStackTrace();
-                } catch (IllegalAccessException iae) {
-                    iae.printStackTrace();
-                }
-                if (GuiConfig.DRAW_MARKUPS) {
-                    for (ReflectedMarkupSpecification markupSpec : eventSpec.getMarkupSpecs()) {
-                        tag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM: " + markupSpec.getClass().getSimpleName() + "</font><br>";
-                        shortTag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM:  " + shorten(markupSpec.getClass().getSimpleName(), GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
-                    }
                 }
             }
         }
@@ -159,7 +156,7 @@ public class Transition extends Vertex {
         Transition copy = new Transition(name, functionMode);
         copy.visibilityMode = visibilityMode;
         for (ReflectedEventSpecification eventSpec : eventSpecs) {
-            copy.eventSpecs.add(eventSpec.copySpecial());
+            copy.eventSpecs.add(eventSpec.copy());
         }
         copy.updateTag();
         return copy;
@@ -171,7 +168,9 @@ public class Transition extends Vertex {
             inputEvents = new ArrayList<InputEvent>();
             inputEventStatus = new Hashtable<InputEvent, Boolean>();
             updateTag();
-        } catch (Exception e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

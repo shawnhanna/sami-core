@@ -73,7 +73,7 @@ public class DomainConfigManager {
             dc = (DomainConfig) ois.readObject();
             dc.reload();
             LOGGER.log(Level.INFO, dc.toVerboseString());
-            
+
             // Update Preferences
             try {
                 Preferences p = Preferences.userRoot();

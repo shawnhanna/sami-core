@@ -1,12 +1,11 @@
 package sami.mission;
 
-import sami.event.InputEvent;
+import java.io.IOException;
 import sami.gui.GuiConfig;
 import sami.mission.Vertex.FunctionMode;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 
 /**
  *
@@ -23,7 +22,7 @@ public class Edge implements java.io.Serializable {
     //  Originally an instance of the Token was stored, but this caused 
     //  serialization issues
     private ArrayList<String> tokenNames = new ArrayList<String>();
-    
+
     transient String tag = "", shortTag = "";
     transient private ArrayList<Token> tokenRequirements = new ArrayList<Token>();
 
@@ -180,7 +179,9 @@ public class Edge implements java.io.Serializable {
             ois.defaultReadObject();
             tokenRequirements = new ArrayList<Token>();
             updateTag();
-        } catch (Exception e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

@@ -1,17 +1,16 @@
 package sami.event;
 
-import java.io.ByteArrayOutputStream;
-import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import sami.SerializableHelper;
+import static sami.event.Event.NONE;
+import sami.markup.Markup;
 import sami.markup.ReflectedMarkupSpecification;
 
 /**
@@ -28,10 +27,7 @@ import sami.markup.ReflectedMarkupSpecification;
 public class ReflectedEventSpecification implements java.io.Serializable {
 
     private static final Logger LOGGER = Logger.getLogger(ReflectedEventSpecification.class.getName());
-    public static final String NONE = "@None";
     static final long serialVersionUID = 0L;
-    private static OutputStream testSink;
-    private static ObjectOutputStream testStream;
     //@todo need to decide if we should have to handle non-serializable classes or not...making the below unneeded - right now we assume everything is serializable
     // Non-serializable lookup from field name to object representing its defined/undefined variable name or value
     transient HashMap<String, Object> fieldNameToTransDefinition = new HashMap<String, Object>();
@@ -70,7 +66,7 @@ public class ReflectedEventSpecification implements java.io.Serializable {
      */
     private void writeObject(ObjectOutputStream os) {
         try {
-            fieldNameToSerialDefinition = transientToSerial(fieldNameToTransDefinition);
+            fieldNameToSerialDefinition = SerializableHelper.transientToSerial(fieldNameToTransDefinition);
             os.defaultWriteObject();
         } catch (IOException ex) {
             Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
@@ -81,59 +77,22 @@ public class ReflectedEventSpecification implements java.io.Serializable {
     private void readObject(ObjectInputStream ois) {
         try {
             ois.defaultReadObject();
-            fieldNameToTransDefinition = serialToTransient(className, fieldNameToSerialDefinition);
-        } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Read failed: " + e, this);
+            fieldNameToTransDefinition = SerializableHelper.serialToTransient(className, fieldNameToSerialDefinition);
+            System.out.println("### read in markupSpecs: " + markupSpecs.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-    }
-
-    private HashMap<String, Object> serialToTransient(String className, HashMap<String, Object> serialLookup) {
-        HashMap<String, Object> transientLookup = new HashMap<String, Object>();
-        for (String fieldName : serialLookup.keySet()) {
-            transientLookup.put(fieldName, serialLookup.get(fieldName));
-        }
-        return transientLookup;
-    }
-
-    private HashMap<String, Object> transientToSerial(HashMap<String, Object> transientLookup) {
-        //@todo need to decide if we should have to handle non-serializable classes or not - 
-        //  this will handle some cases of non-serializable classes, but for the most part I 
-        //  am just making the datamodel classes serializable
-        HashMap<String, Object> serialLookup = new HashMap<String, Object>();
-        for (String fieldName : transientLookup.keySet()) {
-            Object object = transientLookup.get(fieldName);
-            if (ReflectedEventSpecification.isSerializable(object)) {
-                // If it is serializable, just copy the entry
-                serialLookup.put(fieldName, object);
-            } else {
-                LOGGER.severe("Field named \"" + fieldName + "\" is not serializable!");
-//                // If it is not serializable, make a hashmap containing each of the field's fields
-//                HashMap<String, Object> subTransientLookup = new HashMap<String, Object>();
-//                for (Field subField : object.getClass().getDeclaredFields()) {
-//                    if (!subField.isAccessible()) {
-//                        subField.setAccessible(true);
-//                    }
-//                    String subFieldName = subField.getName();
-//                    try {
-//                        subTransientLookup.put(subFieldName, subField.get(object));
-//                    } catch (IllegalAccessException iae) {
-//                        iae.printStackTrace();
-//                    }
-//                }
-//                HashMap<String, Object> subSerialLookup = transientToSerial(subTransientLookup);
-//                serialLookup.put(fieldName, subSerialLookup);
-            }
-        }
-        return serialLookup;
     }
 
     public ArrayList<ReflectedMarkupSpecification> getMarkupSpecs() {
         return markupSpecs;
     }
 
-    public void setMarkupSpecs(ArrayList<ReflectedMarkupSpecification> markups) {
-        this.markupSpecs = markups;
+    public void setMarkupSpecs(ArrayList<ReflectedMarkupSpecification> markupSpecs) {
+        this.markupSpecs = markupSpecs;
+        System.out.println("### set markupSpecs: " + markupSpecs);
     }
 
     public HashMap<String, Object> getFieldDefinitions() {
@@ -194,7 +153,37 @@ public class ReflectedEventSpecification implements java.io.Serializable {
             event = (Event) c.newInstance();
 
             if (event != null) {
-                instantiate(event, fieldNameToTransDefinition);
+                instantiateEventVariables(event, fieldNameToTransDefinition);
+                instantiateMarkups(event, markupSpecs);
+
+                System.out.println("### markupSpecs: " + markupSpecs.toString());
+
+                System.out.println("### Instatianted event");
+                System.out.println("### Class: " + event.getClass().getSimpleName());
+                System.out.println("###\t Fields:");
+                for (Field field : event.getClass().getDeclaredFields()) {
+                    try {
+                        System.out.println("###\t\t " + field.get(event));
+                    } catch (IllegalArgumentException ex) {
+                        Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (IllegalAccessException ex) {
+                        Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                System.out.println("###\t Markups:");
+                for (Markup markup : event.getMarkups()) {
+                    System.out.println("###\t\t Markup: " + markup.getClass().getSimpleName());
+                    for (Field field : markup.getClass().getDeclaredFields()) {
+                        try {
+                            System.out.println("###\t\t\t " + field.get(markup));
+                        } catch (IllegalArgumentException ex) {
+                            Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IllegalAccessException ex) {
+                            Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+
             } else {
                 LOGGER.log(Level.SEVERE, "Creation of instance failed for " + className, this);
             }
@@ -206,7 +195,7 @@ public class ReflectedEventSpecification implements java.io.Serializable {
         return event;
     }
 
-    private void instantiate(Event event, HashMap<String, Object> fieldNameToObject) {
+    private void instantiateEventVariables(Event event, HashMap<String, Object> fieldNameToObject) {
         for (Field field : event.getClass().getDeclaredFields()) {
             Object definition = fieldNameToObject.get(field.getName());
             if (definition != null) {
@@ -241,7 +230,15 @@ public class ReflectedEventSpecification implements java.io.Serializable {
         }
     }
 
-    public ReflectedEventSpecification copySpecial() {
+    private void instantiateMarkups(Event event, ArrayList<ReflectedMarkupSpecification> markupSpecs) {
+        ArrayList<Markup> markups = new ArrayList<Markup>();
+        for (ReflectedMarkupSpecification markupSpec : markupSpecs) {
+            markups.add(markupSpec.instantiate());
+        }
+        event.setMarkups(markups);
+    }
+
+    public ReflectedEventSpecification copy() {
         ReflectedEventSpecification copy = new ReflectedEventSpecification(className);
         // Need to set variableHolderField or instanceParams?
         if (fieldNameToTransDefinition != null) {
@@ -250,35 +247,12 @@ public class ReflectedEventSpecification implements java.io.Serializable {
                 copy.fieldNameToTransDefinition.put(key, fieldNameToTransDefinition.get(key));
             }
         }
+        if (markupSpecs != null) {
+            copy.markupSpecs = new ArrayList<ReflectedMarkupSpecification>();
+            for (ReflectedMarkupSpecification markupSpec : markupSpecs) {
+                copy.markupSpecs.add(markupSpec.copy());
+            }
+        }
         return copy;
-    }
-
-    public static boolean isSerializable(final Object o) {
-        boolean ret = false;
-        try {
-            if (o == null) {
-                ret = true;
-            } else if (o.getClass().isPrimitive()) {
-                ret = true;
-            } else if (o instanceof Serializable || o instanceof Externalizable) {
-                if (testSink == null) {
-                    testSink = new ByteArrayOutputStream();
-                }
-                testStream = new ObjectOutputStream(testSink);
-                testStream.writeObject(o);
-                // If we are here, there were no exceptions and this is serializable
-                ret = true;
-            }
-        } catch (IOException io) {
-            //io.printStackTrace();
-        }
-        // Shut down stream
-        if (testStream != null) {
-            try {
-                testStream.close();
-            } catch (IOException ex) {
-            }
-        }
-        return ret;
     }
 }

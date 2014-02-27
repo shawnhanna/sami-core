@@ -1,14 +1,55 @@
 package sami.markup;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  *
  * @author nbb
  */
 public class RelevantProxy extends Markup {
-    
-    public enum Proxies { ALL_PROXIES, RELEVANT_PROXIES, SELECTED_PROXIES };
-    public enum ShowPaths { YES, NO };
+
+    // List of enum fields for which an enum option should be selected
+    public static final ArrayList<String> enumFieldNames = new ArrayList<String>();
+    // Description for each enum field
+    public static final HashMap<String, String> enumNameToDescription = new HashMap<String, String>();
+    // Mapping from enum value to the MarkupOption field it requires
+    public static final HashMap<Enum, String> enumValueToFieldName = new HashMap<Enum, String>();
+    // Fields
+    public Proxies proxies;
+    public ShowPaths showPaths;
+
+    public enum Proxies {
+
+        ALL_PROXIES, RELEVANT_PROXIES
+    };
+
+    public enum ShowPaths {
+
+        YES, NO
+    };
+
+    static {
+        enumFieldNames.add("proxies");
+        enumFieldNames.add("showPaths");
+
+        enumNameToDescription.put("proxies", "Which proxies are relevant?");
+        enumNameToDescription.put("showPaths", "Show proxies' paths?");
+
+        enumValueToFieldName.put(Proxies.ALL_PROXIES, null);
+        enumValueToFieldName.put(Proxies.RELEVANT_PROXIES, null);
+        enumValueToFieldName.put(ShowPaths.NO, null);
+        enumValueToFieldName.put(ShowPaths.YES, null);
+    }
 
     public RelevantProxy() {
+    }
+
+    public static void main(String[] args) {
+        RelevantProxy rp = new RelevantProxy();
+        Attention a = new Attention();
+
+        System.out.println(rp.enumFieldNames.toString());
+        System.out.println(a.enumFieldNames.toString());
     }
 }

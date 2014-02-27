@@ -1,7 +1,8 @@
 package sami.uilanguage;
 
 import java.lang.reflect.Field;
-import javax.swing.JComponent;
+import java.util.ArrayList;
+import sami.markup.Markup;
 
 /**
  *
@@ -14,11 +15,11 @@ public interface UiComponentGeneratorInt {
         CREATE, SELECT
     };
 
-    public JComponent getCreationComponent(Class objectClass);
+    public MarkupComponent getCreationComponent(Class objectClass, ArrayList<Markup> markupList);
 
-    public JComponent getSelectionComponent(Object object);
+    public MarkupComponent getSelectionComponent(Object object, ArrayList<Markup> markupList);
 
-    public Object getComponentValue(JComponent component, Field field);
+    public Object getComponentValue(MarkupComponent component, Field field);
 
-    public boolean setComponentValue(Object value, JComponent component);
+    public boolean setComponentValue(MarkupComponent component, Object value);
 }

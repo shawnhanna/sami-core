@@ -36,7 +36,8 @@ public class DomainConfig implements java.io.Serializable {
      * A complete domain configuration file needs to read in the following:
      *   - Agents Listing: All DREAAM agents used for helping or checking mission plans
      *   - Assets Listing: All AbstractAsset implementations
-     *   - Component generator Listing: Takes the first class that implements UiComponentGeneratorInterface
+     *   - Component generator Listing: Takes the first class that implements UiComponentGeneratorInt
+     *   - From UI message generator Listing: Takes the first class that implements FromUiMessageGeneratorInt
      *   - Events Listing: All input and output event class paths
      *   - Event handlers Mapping: Mapping from output event class path to handler class path
      *   - Markup Listing: All SA and MI operator markup class paths
@@ -55,6 +56,8 @@ public class DomainConfig implements java.io.Serializable {
     public String assetTreeFilePath;
     public ArrayList<String> componentGeneratorList;
     public String componentGeneratorListFilePath;
+    public ArrayList<String> fromUiMessageGeneratorList;
+    public String fromUiMessageGeneratorListFilePath;
     public DefaultMutableTreeNode eventTree;
     public String eventTreeFilePath;
     public Hashtable<String, String> eventHandlerMapping;
@@ -77,6 +80,7 @@ public class DomainConfig implements java.io.Serializable {
             String agentListFilePath,
             String asssetListFilePath,
             String componentGeneratorListFilePath,
+            String fromUiMessageGeneratorListFilePath,
             String eventListFilePath,
             String eventHandlerMappingFilePath,
             String markupListFilePath,
@@ -88,6 +92,7 @@ public class DomainConfig implements java.io.Serializable {
         this.agentTreeFilePath = agentListFilePath;
         this.assetTreeFilePath = asssetListFilePath;
         this.componentGeneratorListFilePath = componentGeneratorListFilePath;
+        this.fromUiMessageGeneratorListFilePath = fromUiMessageGeneratorListFilePath;
         this.eventTreeFilePath = eventListFilePath;
         this.eventHandlerMappingFilePath = eventHandlerMappingFilePath;
         this.markupTreeFilePath = markupListFilePath;
@@ -131,6 +136,19 @@ public class DomainConfig implements java.io.Serializable {
                 ArrayList<String> temp = parseListFile(file);
                 if (temp != null) {
                     componentGeneratorList = temp;
+                }
+            } else {
+                LOGGER.warning("Could not open component generator list file path: \"" + componentGeneratorListFilePath + "\"");
+            }
+        } else {
+            LOGGER.warning("Component generator file path is not set");
+        }
+        if (fromUiMessageGeneratorListFilePath != null) {
+            File file = new File(fromUiMessageGeneratorListFilePath);
+            if (file != null) {
+                ArrayList<String> temp = parseListFile(file);
+                if (temp != null) {
+                    fromUiMessageGeneratorList = temp;
                 }
             } else {
                 LOGGER.warning("Could not open component generator list file path: \"" + componentGeneratorListFilePath + "\"");
@@ -221,6 +239,7 @@ public class DomainConfig implements java.io.Serializable {
         if (agentTree != null
                 && assetTree != null
                 && componentGeneratorList != null
+                && fromUiMessageGeneratorList != null
                 && eventHandlerMapping != null
                 && eventTree != null
                 && markupTree != null
@@ -452,6 +471,7 @@ public class DomainConfig implements java.io.Serializable {
                 + "\n\t" + agentTreeFilePath
                 + "\n\t" + assetTreeFilePath
                 + "\n\t" + componentGeneratorListFilePath
+                + "\n\t" + fromUiMessageGeneratorListFilePath
                 + "\n\t" + eventTreeFilePath
                 + "\n\t" + eventHandlerMappingFilePath
                 + "\n\t" + markupTreeFilePath
@@ -469,6 +489,8 @@ public class DomainConfig implements java.io.Serializable {
                 + "\n\t\t" + getLeafString(assetTree)
                 + "\n\t" + componentGeneratorListFilePath
                 + "\n\t\t" + componentGeneratorList.toString()
+                + "\n\t" + fromUiMessageGeneratorListFilePath
+                + "\n\t\t" + fromUiMessageGeneratorList.toString()
                 + "\n\t" + eventTreeFilePath
                 + "\n\t\t" + getLeafString(eventTree)
                 + "\n\t" + eventHandlerMappingFilePath

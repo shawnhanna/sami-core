@@ -1,11 +1,11 @@
 package sami.mission;
 
-import sami.markup.Markup;
 import sami.event.OutputEvent;
 import sami.event.ReflectedEventSpecification;
 import sami.gui.GuiConfig;
 import java.awt.Shape;
 import java.awt.geom.Ellipse2D;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import sami.markup.ReflectedMarkupSpecification;
@@ -164,6 +164,7 @@ public class Place extends Vertex {
         }
     }
 
+    @Override
     public void updateTag() {
         tag = "<html>";
         shortTag = "<html>";
@@ -174,27 +175,23 @@ public class Place extends Vertex {
         if (GuiConfig.DRAW_EVENTS) {
             for (ReflectedEventSpecification eventSpec : eventSpecs) {
                 try {
-                    String className = eventSpec.getClassName();
-                    Object eventInstance = Class.forName(className).newInstance();
-                    String simpleName = eventInstance.getClass().getSimpleName();
-                    if (eventInstance instanceof OutputEvent) {
+                    Class eventClass = Class.forName(eventSpec.getClassName());
+                    String simpleName = eventClass.getSimpleName();
+                    if (OutputEvent.class.isAssignableFrom(eventClass)) {
                         tag += "<font color=" + GuiConfig.OUTPUT_EVENT_TEXT_COLOR + ">O:" + simpleName + "</font><br>";
                         shortTag += "<font color=" + GuiConfig.OUTPUT_EVENT_TEXT_COLOR + ">O:" + shorten(simpleName, GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
                     } else {
                         continue;
                     }
+                    if (GuiConfig.DRAW_MARKUPS) {
+                        for (ReflectedMarkupSpecification markupSpec : eventSpec.getMarkupSpecs()) {
+                            Class markupClass = Class.forName(markupSpec.getClassName());
+                            tag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM: " + markupClass.getSimpleName() + "</font><br>";
+                            shortTag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM:  " + shorten(markupClass.getSimpleName(), GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
+                        }
+                    }
                 } catch (ClassNotFoundException cnfe) {
                     cnfe.printStackTrace();
-                } catch (InstantiationException ie) {
-                    ie.printStackTrace();
-                } catch (IllegalAccessException iae) {
-                    iae.printStackTrace();
-                }
-                if (GuiConfig.DRAW_MARKUPS) {
-                    for (ReflectedMarkupSpecification markupSpec : eventSpec.getMarkupSpecs()) {
-                        tag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM: " + markupSpec.getClass().getSimpleName() + "</font><br>";
-                        shortTag += "<font color=" + GuiConfig.MARKUP_TEXT_COLOR + ">\tM:  " + shorten(markupSpec.getClass().getSimpleName(), GuiConfig.MAX_STRING_LENGTH) + "</font><br>";
-                    }
                 }
             }
         }
@@ -214,6 +211,7 @@ public class Place extends Vertex {
         shortTag += "</html>";
     }
 
+    @Override
     public String toString() {
         return "Place:" + name;
     }
@@ -222,7 +220,7 @@ public class Place extends Vertex {
         Place copy = new Place(name, functionMode);
         copy.visibilityMode = visibilityMode;
         for (ReflectedEventSpecification eventSpec : eventSpecs) {
-            copy.eventSpecs.add(eventSpec.copySpecial());
+            copy.eventSpecs.add(eventSpec.copy());
         }
         copy.isStart = isStart;
         copy.isEnd = isEnd;
@@ -241,7 +239,9 @@ public class Place extends Vertex {
             outputEvents = new ArrayList<OutputEvent>();
             tokens = new ArrayList<Token>();
             updateTag();
-        } catch (Exception e) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
     }

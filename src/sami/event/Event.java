@@ -10,6 +10,8 @@ import sami.markup.Markup;
  */
 public class Event {
 
+    public static final String NONE = "@None";
+    
     private ArrayList<Markup> markups = new ArrayList<Markup>();
     protected UUID missionId;
     protected UUID id;

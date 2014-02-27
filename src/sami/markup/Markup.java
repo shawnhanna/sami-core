@@ -1,6 +1,5 @@
 package sami.markup;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -9,20 +8,27 @@ import java.util.HashMap;
  */
 public class Markup {
 
-    // List of enum fields for which an enum option should be selected
-    public static final ArrayList<String> enumFieldNames = new ArrayList<String>();
-    // Description for each enum field
-    public static final HashMap<String, String> enumNameToDescription = new HashMap<String, String>();
-    // Mapping from enum value to the MarkupOption field it requires
-    public static final HashMap<Enum, String> enumValueToFieldName = new HashMap<Enum, String>();
+    private HashMap<String, String> fieldNameToVariableName = null;
 
     public Markup() {
     }
 
     public Markup copy() {
-        return new Markup();
+        Markup copy = new Markup();
+        for (String key : fieldNameToVariableName.keySet()) {
+            copy.fieldNameToVariableName.put(key, fieldNameToVariableName.get(key));
+        }
+        return copy;
     }
 
+    public void addVariable(String fieldName, String variableName) {
+        if (fieldNameToVariableName == null) {
+            fieldNameToVariableName = new HashMap<String, String>();
+        }
+        fieldNameToVariableName.put(fieldName, variableName);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o instanceof Markup) {
             boolean ret = o.getClass().getName().equalsIgnoreCase(this.getClass().getName());
@@ -32,6 +38,7 @@ public class Markup {
         return super.equals(o);
     }
 
+    @Override
     public String toString() {
         return this.getClass().getName();
     }
