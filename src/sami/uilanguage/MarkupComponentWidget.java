@@ -1,6 +1,7 @@
 package sami.uilanguage;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import sami.markup.Markup;
 
@@ -10,13 +11,13 @@ import sami.markup.Markup;
  */
 public interface MarkupComponentWidget {
 
-    public abstract int getCreationWidgetScore(Class creationClass, ArrayList<Markup> markups);
+    public abstract int getCreationWidgetScore(Type type, ArrayList<Markup> markups);
 
-    public abstract int getSelectionWidgetScore(Object selectionObject, ArrayList<Markup> markups);
+    public abstract int getSelectionWidgetScore(Type type, ArrayList<Markup> markups);
 
     public abstract int getMarkupScore(ArrayList<Markup> markups);
 
-    public abstract MarkupComponentWidget addCreationWidget(MarkupComponent component, Class creationClass, ArrayList<Markup> markups);
+    public abstract MarkupComponentWidget addCreationWidget(MarkupComponent component, Type type, ArrayList<Markup> markups);
 
     public abstract MarkupComponentWidget addSelectionWidget(MarkupComponent component, Object selectionObject, ArrayList<Markup> markups);
 

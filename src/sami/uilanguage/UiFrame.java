@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -51,12 +52,12 @@ public class UiFrame extends JFrame implements MarkupComponent {
     }
 
     @Override
-    public int getCreationComponentScore(Class creationClass, ArrayList<Markup> markups) {
+    public int getCreationComponentScore(Type type, ArrayList<Markup> markups) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public int getSelectionComponentScore(Class selectionClass, ArrayList<Markup> markups) {
+    public int getSelectionComponentScore(Type type, ArrayList<Markup> markups) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -66,7 +67,7 @@ public class UiFrame extends JFrame implements MarkupComponent {
     }
 
     @Override
-    public MarkupComponent useCreationComponent(Class creationClass, ArrayList<Markup> markups) {
+    public MarkupComponent useCreationComponent(Type type, ArrayList<Markup> markups) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
