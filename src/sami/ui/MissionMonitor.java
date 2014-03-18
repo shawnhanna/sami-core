@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -313,10 +314,11 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
             }
 
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(MissionMonitor.class.getName()).log(Level.SEVERE, "Class not found exception in load", ex);
+            LOGGER.severe("Class not found exception in DRM load");
+        } catch (FileNotFoundException ex) {
+            LOGGER.severe("DRM File not found");
         } catch (IOException ex) {
-            Logger.getLogger(MissionMonitor.class.getName()).log(Level.SEVERE, "IO Exception on load", ex);
-            ex.printStackTrace();
+            LOGGER.severe("IO Exception on DRM load");
         }
     }//GEN-LAST:event_loadBActionPerformed
 

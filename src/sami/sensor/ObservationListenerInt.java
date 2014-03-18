@@ -3,7 +3,8 @@ package sami.sensor;
 import sami.event.InputEvent;
 
 /**
- *
+ * Listens to a particular observation/sensor source
+ * 
  * @author nbb
  */
 public interface ObservationListenerInt {

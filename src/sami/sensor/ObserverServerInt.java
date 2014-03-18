@@ -4,7 +4,8 @@ import sami.proxy.ProxyInt;
 import java.util.ArrayList;
 
 /**
- *
+ * Server managing all observers/sensors
+ * 
  * @author nbb
  */
 public interface ObserverServerInt {
@@ -14,6 +15,8 @@ public interface ObserverServerInt {
     public void removeListener(ObserverServerListenerInt l);
 
     public void createObserver(ProxyInt source, int channel);
+
+    public ObserverInt getObserver(ProxyInt source, int channel);
 
     public ArrayList<ObserverInt> getObserverListClone();
 

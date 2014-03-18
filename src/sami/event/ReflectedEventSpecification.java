@@ -78,7 +78,6 @@ public class ReflectedEventSpecification implements java.io.Serializable {
         try {
             ois.defaultReadObject();
             fieldNameToTransDefinition = SerializableHelper.serialToTransient(className, fieldNameToSerialDefinition);
-            System.out.println("### read in markupSpecs: " + markupSpecs.toString());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
