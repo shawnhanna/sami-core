@@ -18,7 +18,6 @@ import sami.event.Event;
 import sami.event.InputEvent;
 import sami.event.OutputEvent;
 import sami.event.ReflectedEventSpecification;
-import sami.markup.Markup;
 import sami.mission.TokenSpecification.TokenType;
 
 /**
@@ -227,12 +226,35 @@ public class MissionPlanSpecification implements java.io.Serializable {
         return customTaskTokenSpecList;
     }
 
+    /**
+     * Returns RES with field(s) that do not have a definition
+     *
+     * @return
+     */
     public ArrayList<ReflectedEventSpecification> getEventSpecsRequiringParams() {
         ArrayList<ReflectedEventSpecification> ret = new ArrayList<ReflectedEventSpecification>();
         for (Vertex vertex : vertexToEventSpecListMap.keySet()) {
             ArrayList<ReflectedEventSpecification> events = vertexToEventSpecListMap.get(vertex);
             for (ReflectedEventSpecification reflectedEventSpecification : events) {
                 if (reflectedEventSpecification.hasMissingParams(false)) {
+                    ret.add(reflectedEventSpecification);
+                }
+            }
+        }
+        return ret;
+    }
+
+    /**
+     * Returns RES with field(s) that do not have a definition or are editable
+     *
+     * @return
+     */
+    public ArrayList<ReflectedEventSpecification> getEventSpecsRequestingParams() {
+        ArrayList<ReflectedEventSpecification> ret = new ArrayList<ReflectedEventSpecification>();
+        for (Vertex vertex : vertexToEventSpecListMap.keySet()) {
+            ArrayList<ReflectedEventSpecification> events = vertexToEventSpecListMap.get(vertex);
+            for (ReflectedEventSpecification reflectedEventSpecification : events) {
+                if (reflectedEventSpecification.hasEditableParams(false)) {
                     ret.add(reflectedEventSpecification);
                 }
             }

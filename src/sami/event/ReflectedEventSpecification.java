@@ -35,6 +35,8 @@ public class ReflectedEventSpecification implements java.io.Serializable {
     protected ArrayList<ReflectedMarkupSpecification> markupSpecs = new ArrayList<ReflectedMarkupSpecification>();
     // Serializable version of fieldNameToObjectInst using HashMaps and Strings to represent object
     protected HashMap<String, Object> fieldNameToSerialDefinition = new HashMap<String, Object>();
+    // For each field, whether or not to allow the user to edit the values at run-time
+    protected HashMap<String, Boolean> fieldNameToEditable = new HashMap<String, Boolean>();
     // Event's class name
     protected final String className;
 
@@ -94,12 +96,24 @@ public class ReflectedEventSpecification implements java.io.Serializable {
         System.out.println("### set markupSpecs: " + markupSpecs);
     }
 
+    public Object getFieldDefinition(String fieldName) {
+        return fieldNameToTransDefinition.get(fieldName);
+    }
+
     public HashMap<String, Object> getFieldDefinitions() {
         return fieldNameToTransDefinition;
     }
 
+    public HashMap<String, Boolean> getEditableFields() {
+        return fieldNameToEditable;
+    }
+
     public void setFieldDefinitions(HashMap<String, Object> fieldNameToObject) {
         fieldNameToTransDefinition = fieldNameToObject;
+    }
+
+    public void setEditableFields(HashMap<String, Boolean> fieldNameToEditable) {
+        this.fieldNameToEditable = fieldNameToEditable;
     }
 
     public void addFieldDefinition(String fieldName, Object fieldValue) {
@@ -110,6 +124,12 @@ public class ReflectedEventSpecification implements java.io.Serializable {
         return className;
     }
 
+    /**
+     * Returns true if any fields do not have a definition
+     *
+     * @param atPlace
+     * @return
+     */
     public boolean hasMissingParams(boolean atPlace) {
         //@todo this is ugly
         try {
@@ -129,6 +149,38 @@ public class ReflectedEventSpecification implements java.io.Serializable {
             }
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Failed to instantiate event: " + className + " due to " + ex, this);
+            ex.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if any fields do not have a definition or are editable
+     *
+     * @param atPlace
+     * @return
+     */
+    public boolean hasEditableParams(boolean atPlace) {
+        //@todo this is ugly
+        try {
+            Class c = Class.forName(className);
+            Event event = (Event) c.newInstance();
+            LOGGER.log(Level.FINE, "Event " + event.getClass().getSimpleName() + ", event.getFillAtPlace() = " + event.getFillAtPlace());
+            if (event.getFillAtPlace() && !atPlace) {
+                LOGGER.log(Level.INFO, "Tried to check for editable params for event " + event.getClass().getSimpleName() + " at plan loading, but params are to be filled at place, returning false");
+                return false;
+            } else {
+                LOGGER.log(Level.FINE, "Checking for editable params for event " + event.getClass().getSimpleName());
+                for (String fieldName : fieldNameToTransDefinition.keySet()) {
+                    if (fieldNameToTransDefinition.get(fieldName) == null
+                            || (fieldNameToEditable.containsKey(fieldName) && fieldNameToEditable.get(fieldName))) {
+                        // If a param has no defintion or is editable, it needs to be specified/should be editable
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            LOGGER.severe("Failed to instantiate event: " + className);
             ex.printStackTrace();
         }
         return false;
@@ -244,6 +296,12 @@ public class ReflectedEventSpecification implements java.io.Serializable {
             copy.fieldNameToTransDefinition = new HashMap<String, Object>();
             for (String key : fieldNameToTransDefinition.keySet()) {
                 copy.fieldNameToTransDefinition.put(key, fieldNameToTransDefinition.get(key));
+            }
+        }
+        if (fieldNameToEditable != null) {
+            copy.fieldNameToEditable = new HashMap<String, Boolean>();
+            for (String key : fieldNameToEditable.keySet()) {
+                copy.fieldNameToEditable.put(key, fieldNameToEditable.get(key));
             }
         }
         if (markupSpecs != null) {

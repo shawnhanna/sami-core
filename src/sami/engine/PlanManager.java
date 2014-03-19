@@ -17,7 +17,6 @@ import sami.config.DomainConfigManager;
 import sami.event.AbortMission;
 import sami.event.AbortMissionReceived;
 import sami.event.BlockingInputEvent;
-import sami.event.Event;
 import sami.event.GeneratedEventListenerInt;
 import sami.event.InputEvent;
 import sami.event.MissingParamsReceived;
@@ -109,13 +108,13 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         startPlace = mSpec.getUninstantiatedStart();
 
         // If there are any parameters on the events that need to be filled in, request from the operator
-        ArrayList<ReflectedEventSpecification> missing = mSpec.getEventSpecsRequiringParams();
-        if (missing.size() > 0) {
-            LOGGER.log(Level.INFO, "Missing parameters in eventSpecs: " + missing);
+        ArrayList<ReflectedEventSpecification> editableEventSpecs = mSpec.getEventSpecsRequestingParams();
+        if (editableEventSpecs.size() > 0) {
+            LOGGER.fine("Missing/editable parameters in eventSpecs: " + editableEventSpecs);
 
             // Create vertices to get missing parameters
-            Place missingParamsPlace = new Place("Get Missing Params", FunctionMode.Nominal);
-            Transition missingParamsTransition = new Transition("Got Missing Params", FunctionMode.Nominal);
+            Place missingParamsPlace = new Place("Get Params", FunctionMode.Nominal);
+            Transition missingParamsTransition = new Transition("Got Params", FunctionMode.Nominal);
             Edge edge1 = new Edge(missingParamsPlace, missingParamsTransition, FunctionMode.Nominal);
             Edge edge2 = new Edge(missingParamsTransition, startPlace, FunctionMode.Nominal);
             // Add vetices to plan
@@ -130,20 +129,21 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             startPlace.addInEdge(edge2);
             startPlace = missingParamsPlace;
 
-            // Make list of missing parameter fields
+            // Make list of missing/editable parameter fields
             Hashtable<Field, String> fieldDescriptions = new Hashtable<Field, String>();
             Hashtable<Field, ReflectedEventSpecification> fieldToEventSpec = new Hashtable<Field, ReflectedEventSpecification>();
-            for (ReflectedEventSpecification eventSpec : missing) {
-                LOGGER.fine("event spec for " + eventSpec.getClassName() + " is missing fields");
+            for (ReflectedEventSpecification eventSpec : editableEventSpecs) {
+                LOGGER.fine("Event spec for " + eventSpec.getClassName() + " has missing/editable fields");
                 HashMap<String, Object> instanceParams = eventSpec.getFieldDefinitions();
-                int missingCount = 0;
+                HashMap<String, Boolean> fieldNameToEditable = eventSpec.getEditableFields();
+
+                int missingCount = 0, editableCount = 0;
                 for (String fieldName : instanceParams.keySet()) {
-                    LOGGER.fine("PM Missing param? " + fieldName + " = " + instanceParams.get(fieldName));
+                    LOGGER.fine("\tField: " + fieldName + " = " + instanceParams.get(fieldName));
                     if (instanceParams.get(fieldName) == null) {
-                        LOGGER.fine("\tyes");
+                        LOGGER.fine("\t\t Missing");
                         missingCount++;
                         try {
-                            LOGGER.fine("\t\tlooking for " + fieldName);
                             Field missingField = Class.forName(eventSpec.getClassName()).getField(fieldName);
                             fieldDescriptions.put(missingField, "");
                             fieldToEventSpec.put(missingField, eventSpec);
@@ -152,9 +152,29 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                         } catch (NoSuchFieldException nsfe) {
                             nsfe.printStackTrace();
                         }
+                    } else if (fieldNameToEditable.get(fieldName)) {
+                        LOGGER.fine("\t\t Editable");
+                        editableCount++;
+                        try {
+                            Field editableField = Class.forName(eventSpec.getClassName()).getField(fieldName);
+                            fieldDescriptions.put(editableField, "");
+                            fieldToEventSpec.put(editableField, eventSpec);
+                        } catch (ClassNotFoundException cnfe) {
+                            cnfe.printStackTrace();
+                        } catch (NoSuchFieldException nsfe) {
+                            nsfe.printStackTrace();
+                        }
+                    } else {
+                        LOGGER.fine("\t\t Locked");
+                    }
+
+                    if (instanceParams.get(fieldName) == null
+                            && !fieldNameToEditable.get(fieldName)) {
+                        LOGGER.severe("Have a non-editable field: " + fieldName + " with no value!");
                     }
                 }
-                LOGGER.fine("missing " + missingCount);
+                LOGGER.fine("\t Have " + missingCount + " missing fields");
+                LOGGER.fine("\t Have " + editableCount + " editable fields");
             }
 
             // Create events to get missing parameters
