@@ -125,6 +125,9 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
                 if (!handlerObjects.containsKey(handlerClassName)) {
                     // First use of this handler class, create an instance and add it to our hashmap
                     EventHandlerInt newHandlerObject = (EventHandlerInt) handlerClass.newInstance();
+                    if (ProxyServerListenerInt.class.isInstance(newHandlerObject)) {
+                        proxyServer.addListener((ProxyServerListenerInt) newHandlerObject);
+                    }
                     handlerObjects.put(handlerClassName, newHandlerObject);
                 }
                 handlerObject = handlerObjects.get(handlerClassName);
