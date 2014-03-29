@@ -13,7 +13,6 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import sami.config.DomainConfigManager;
 import sami.event.AbortMission;
 import sami.event.AbortMissionReceived;
 import sami.event.BlockingInputEvent;
@@ -25,7 +24,6 @@ import sami.event.OutputEvent;
 import sami.event.ReflectedEventSpecification;
 import sami.gui.GuiConfig;
 import sami.handler.EventHandlerInt;
-import sami.markup.Markup;
 import sami.mission.Edge;
 import sami.mission.MissionPlanSpecification;
 import sami.mission.Place;
@@ -66,8 +64,6 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     // Lookup table used when submissions are completed
     private HashMap<PlanManager, Place> planManagerToPlace = new HashMap<PlanManager, Place>();
     private HashMap<InputEvent, HashMap<ProxyInt, InputEvent>> clonedIeTable = new HashMap<InputEvent, HashMap<ProxyInt, InputEvent>>();
-    // Configuration of output events and the handler classes that will execute them
-    private Hashtable<Class, EventHandlerInt> handlers = null;
     final MissionPlanSpecification mSpec;
     // The model being managed by this PlanManager
     private Place startPlace;
@@ -79,32 +75,8 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         this.mSpec = mSpec;
         this.missionId = missionId;
         this.planName = planName;
-        handlers = new Hashtable<Class, EventHandlerInt>();
-        Hashtable<String, String> handlerMapping = (Hashtable<String, String>) DomainConfigManager.getInstance().domainConfiguration.eventHandlerMapping.clone();
-        Class eventClass, handlerClass;
-        EventHandlerInt handlerObject;
-        HashMap<String, EventHandlerInt> handlerObjects = new HashMap<String, EventHandlerInt>();
-        String handlerClassName;
-        for (String ieClassName : handlerMapping.keySet()) {
-            handlerClassName = handlerMapping.get(ieClassName);
-            try {
-                eventClass = Class.forName(ieClassName);
-                handlerClass = Class.forName(handlerClassName);
-                if (!handlerObjects.containsKey(handlerClassName)) {
-                    // First use of this handler class, create an instance and add it to our hashmap
-                    EventHandlerInt newHandlerObject = (EventHandlerInt) handlerClass.newInstance();
-                    handlerObjects.put(handlerClassName, newHandlerObject);
-                }
-                handlerObject = handlerObjects.get(handlerClassName);
-                handlers.put(eventClass, handlerObject);
-            } catch (InstantiationException ex) {
-                ex.printStackTrace();
-            } catch (IllegalAccessException ex) {
-                ex.printStackTrace();
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
-            }
-        }
+
+//        mSpec.printGraph();
         startPlace = mSpec.getUninstantiatedStart();
 
         // If there are any parameters on the events that need to be filled in, request from the operator
@@ -130,10 +102,16 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             startPlace = missingParamsPlace;
 
             // Make list of missing/editable parameter fields
-            Hashtable<Field, String> fieldDescriptions = new Hashtable<Field, String>();
-            Hashtable<Field, ReflectedEventSpecification> fieldToEventSpec = new Hashtable<Field, ReflectedEventSpecification>();
+            Hashtable<ReflectedEventSpecification, Hashtable<Field, String>> eventSpecToFieldDescriptions = new Hashtable<ReflectedEventSpecification, Hashtable<Field, String>>();
+            Hashtable<ReflectedEventSpecification, ArrayList<Field>> eventSpecToFields = new Hashtable<ReflectedEventSpecification, ArrayList<Field>>();
             for (ReflectedEventSpecification eventSpec : editableEventSpecs) {
                 LOGGER.fine("Event spec for " + eventSpec.getClassName() + " has missing/editable fields");
+                // Hashtable entries for this eventSpec
+                Hashtable<Field, String> fieldDescriptions = new Hashtable<Field, String>();
+                ArrayList<Field> fields = new ArrayList<Field>();
+                eventSpecToFieldDescriptions.put(eventSpec, fieldDescriptions);
+                eventSpecToFields.put(eventSpec, fields);
+                // Defined but editable values
                 HashMap<String, Object> instanceParams = eventSpec.getFieldDefinitions();
                 HashMap<String, Boolean> fieldNameToEditable = eventSpec.getEditableFields();
 
@@ -141,31 +119,31 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 for (String fieldName : instanceParams.keySet()) {
                     LOGGER.fine("\tField: " + fieldName + " = " + instanceParams.get(fieldName));
                     if (instanceParams.get(fieldName) == null) {
-                        LOGGER.fine("\t\t Missing");
+                        LOGGER.finer("\t\t Missing");
                         missingCount++;
                         try {
                             Field missingField = Class.forName(eventSpec.getClassName()).getField(fieldName);
                             fieldDescriptions.put(missingField, "");
-                            fieldToEventSpec.put(missingField, eventSpec);
+                            fields.add(missingField);
                         } catch (ClassNotFoundException cnfe) {
                             cnfe.printStackTrace();
                         } catch (NoSuchFieldException nsfe) {
                             nsfe.printStackTrace();
                         }
                     } else if (fieldNameToEditable.get(fieldName)) {
-                        LOGGER.fine("\t\t Editable");
+                        LOGGER.finer("\t\t Editable");
                         editableCount++;
                         try {
                             Field editableField = Class.forName(eventSpec.getClassName()).getField(fieldName);
                             fieldDescriptions.put(editableField, "");
-                            fieldToEventSpec.put(editableField, eventSpec);
+                            fields.add(editableField);
                         } catch (ClassNotFoundException cnfe) {
                             cnfe.printStackTrace();
                         } catch (NoSuchFieldException nsfe) {
                             nsfe.printStackTrace();
                         }
                     } else {
-                        LOGGER.fine("\t\t Locked");
+                        LOGGER.finer("\t\t Locked");
                     }
 
                     if (instanceParams.get(fieldName) == null
@@ -179,7 +157,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
 
             // Create events to get missing parameters
             //@todo Modify constructors?
-            MissingParamsRequest request = new MissingParamsRequest(missionId, fieldDescriptions, fieldToEventSpec);
+            MissingParamsRequest request = new MissingParamsRequest(missionId, eventSpecToFieldDescriptions);
             MissingParamsReceived response = new MissingParamsReceived();
             request.setMissionId(missionId);
             response.setMissionId(missionId);
@@ -214,11 +192,6 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             LOGGER.log(Level.INFO, "No missing params, instantiating plan");
             if (!mSpec.isInstantiated()) {
                 mSpec.instantiate(missionId);
-
-                ////
-                printGraph(mSpec);
-                ////
-
             }
         }
 
@@ -233,27 +206,28 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             ArrayList<TokenSpecification> tokenSpecs = edgeToTokenSpecs.get(edge);
             if (tokenSpecs == null) {
                 LOGGER.log(Level.WARNING, "\t\tNo labeled token specs for edge " + edge);
-            }
-            for (TokenSpecification tokenSpec : tokenSpecs) {
-                LOGGER.log(Level.FINE, "\t\tFor tokenSpec " + tokenSpec);
+            } else {
+                for (TokenSpecification tokenSpec : tokenSpecs) {
+                    LOGGER.log(Level.FINE, "\t\tFor tokenSpec " + tokenSpec);
 
-                // Retreive or create token for the token specification
-                token = Engine.getInstance().getToken(tokenSpec);
-                if (token != null) {
-                    LOGGER.log(Level.FINE, "\t\t\tRetrieved token " + token);
-                    if (!defaultStartTokens.contains(token) && (token.getType() == TokenType.MatchGeneric || token.getType() == TokenType.Task)) {
-                        // Update default list of tokens to add to the starting place
-                        defaultStartTokens.add(token);
+                    // Retreive or create token for the token specification
+                    token = Engine.getInstance().getToken(tokenSpec);
+                    if (token != null) {
+                        LOGGER.log(Level.FINE, "\t\t\tRetrieved token " + token);
+                        if (!defaultStartTokens.contains(token) && (token.getType() == TokenType.MatchGeneric || token.getType() == TokenType.Task)) {
+                            // Update default list of tokens to add to the starting place
+                            defaultStartTokens.add(token);
+                        }
+                    } else {
+                        token = Engine.getInstance().createToken(tokenSpec);
+                        LOGGER.log(Level.FINE, "\t\t\tCreated token " + token);
                     }
-                } else {
-                    token = Engine.getInstance().createToken(tokenSpec);
-                    LOGGER.log(Level.FINE, "\t\t\tCreated token " + token);
-                }
-                // Add the token to the edge requirements
-                if (token != null) {
-                    edge.addTokenRequirement(token);
-                } else {
-                    LOGGER.log(Level.SEVERE, "\t\t\tTried to add a null token for edge " + edge + " token specification requirement " + tokenSpec);
+                    // Add the token to the edge requirements
+                    if (token != null) {
+                        edge.addTokenRequirement(token);
+                    } else {
+                        LOGGER.log(Level.SEVERE, "\t\t\tTried to add a null token for edge " + edge + " token specification requirement " + tokenSpec);
+                    }
                 }
             }
         }
@@ -426,6 +400,8 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                             if (!failure) {
                                 matchedTokens.add(edgeToken);
                                 removedTokens.add(edgeToken);
+                            } else {
+                                LOGGER.fine("\t Failed G check");
                             }
                             break;
                         case Task:
@@ -433,6 +409,8 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                             if (!failure) {
                                 matchedTokens.add(edgeToken);
                                 removedTokens.add(edgeToken);
+                            } else {
+                                LOGGER.fine("\t Failed Task check");
                             }
                             break;
                         default:
@@ -466,7 +444,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     }
 
     private synchronized void executeTransition(Transition transition, HashMap<Place, ArrayList<Token>> matchedTokens) {
-        LOGGER.log(Level.INFO, "Executing " + transition + ", have matched tokens " + matchedTokens);
+        LOGGER.log(Level.INFO, "Executing " + transition + ", have matched tokens " + matchedTokens + ", inPlaces: " + transition.getInPlaces() + ", inEdges: " + transition.getInEdges() + ", outPlaces: " + transition.getOutPlaces() + ", outEdges: " + transition.getOutEdges());
 
         synchronized (placesBeingEntered) {
             for (Place place : transition.getInPlaces()) {
@@ -511,9 +489,6 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 }
             }
         }
-        if (!proxyTokensFound) {
-            LOGGER.severe("Proxy tokens were not found!");
-        }
         boolean taskTokensFound = true;
         ArrayList<Token> relevantTaskTokens = new ArrayList<Token>();
         if (!relevantProxies.isEmpty()) {
@@ -531,13 +506,26 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 }
             }
         }
-        if (!taskTokensFound) {
-            LOGGER.severe("Task tokens were not found!");
-        }
         ArrayList<Token> allTokens = new ArrayList<Token>();
         for (Place inPlace : transition.getInPlaces()) {
             for (Token token : inPlace.getTokens()) {
                 allTokens.add(token);
+            }
+        }
+        ArrayList<Token> allTaskTokens = new ArrayList<Token>();
+        for (Place inPlace : transition.getInPlaces()) {
+            for (Token token : inPlace.getTokens()) {
+                if (token.getType() == TokenType.Task) {
+                    allTaskTokens.add(token);
+                }
+            }
+        }
+        ArrayList<Token> allProxyTokens = new ArrayList<Token>();
+        for (Place inPlace : transition.getInPlaces()) {
+            for (Token token : inPlace.getTokens()) {
+                if (token.getType() == TokenType.Proxy) {
+                    allProxyTokens.add(token);
+                }
             }
         }
 
@@ -547,19 +535,19 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         // Number of generic tokens to add/remove
         HashMap<Place, Integer> inPlaceToGenericToRemove = new HashMap<Place, Integer>();
         HashMap<Place, Integer> outPlaceToGenericToAdd = new HashMap<Place, Integer>();
-        // boolean[3] corrensponds to add/remove [ All, RelevantTasks, RelevantProxies ]
+        // boolean[5] corrensponds to add/remove [ All, RelevantTasks, RelevantProxies, Tasks, Proxies ]
         HashMap<Place, boolean[]> inPlaceToListsToRemove = new HashMap<Place, boolean[]>();
         HashMap<Place, boolean[]> outPlaceToListsToAdd = new HashMap<Place, boolean[]>();
 
         for (Place inPlace : transition.getInPlaces()) {
             inPlaceToTaskTokensToRemove.put(inPlace, new ArrayList<Token>());
             inPlaceToGenericToRemove.put(inPlace, 0);
-            inPlaceToListsToRemove.put(inPlace, new boolean[]{false, false, false});
+            inPlaceToListsToRemove.put(inPlace, new boolean[]{false, false, false, false, false});
         }
         for (Place outPlace : transition.getOutPlaces()) {
             outPlaceToTaskTokensToAdd.put(outPlace, new ArrayList<Token>());
             outPlaceToGenericToAdd.put(outPlace, 0);
-            outPlaceToListsToAdd.put(outPlace, new boolean[]{false, false, false});
+            outPlaceToListsToAdd.put(outPlace, new boolean[]{false, false, false, false, false});
         }
 
         ////
@@ -609,6 +597,20 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                             listsToRemove[2] = true;
                         }
                         break;
+                    case TakeTask:
+                        listsToAdd[3] = true;
+                        for (Place inPlace : transition.getInPlaces()) {
+                            boolean[] listsToRemove = inPlaceToListsToRemove.get(inPlace);
+                            listsToRemove[3] = true;
+                        }
+                        break;
+                    case TakeProxy:
+                        listsToAdd[4] = true;
+                        for (Place inPlace : transition.getInPlaces()) {
+                            boolean[] listsToRemove = inPlaceToListsToRemove.get(inPlace);
+                            listsToRemove[4] = true;
+                        }
+                        break;
                     case TakeGeneric:
                         genericToAdd++;
                         for (Place inPlace : transition.getInPlaces()) {
@@ -618,6 +620,24 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                         break;
                     case AddGeneric:
                         genericToAdd++;
+                        break;
+                    case ConsumeRelevantTask:
+                        for (Place inPlace : transition.getInPlaces()) {
+                            boolean[] listsToRemove = inPlaceToListsToRemove.get(inPlace);
+                            listsToRemove[1] = true;
+                        }
+                        break;
+                    case ConsumeRelevantProxy:
+                        for (Place inPlace : transition.getInPlaces()) {
+                            boolean[] listsToRemove = inPlaceToListsToRemove.get(inPlace);
+                            listsToRemove[2] = true;
+                        }
+                        break;
+                    case ConsumeGeneric:
+                        for (Place inPlace : transition.getInPlaces()) {
+                            Integer genericCount = inPlaceToGenericToRemove.get(inPlace);
+                            inPlaceToGenericToRemove.put(inPlace, genericCount + 1);
+                        }
                         break;
                     case Task:
                         // Add the token to the outgoing place
@@ -679,6 +699,24 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                         }
                     }
                 }
+                if (listsToRemove[3]) {
+                    // Remove all task tokens
+                    for (Token token : inPlace.getTokens()) {
+                        if (token.getType() == TokenType.Task && !tokensToRemove.contains(token)) {
+                            LOGGER.log(Level.FINER, "\tRemove all task token: " + token);
+                            tokensToRemove.add(token);
+                        }
+                    }
+                }
+                if (listsToRemove[4]) {
+                    // Remove all proxy tokens
+                    for (Token token : inPlace.getTokens()) {
+                        if (token.getType() == TokenType.Proxy && !tokensToRemove.contains(token)) {
+                            LOGGER.log(Level.FINER, "\tRemove all proxy token: " + token);
+                            tokensToRemove.add(token);
+                        }
+                    }
+                }
                 if (!taskTokensToRemove.isEmpty()) {
                     for (Token token : taskTokensToRemove) {
                         if (!tokensToRemove.contains(token)) {
@@ -727,6 +765,20 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                         }
                     }
                 }
+                if (listsToAdd[3]) {
+                    for (Token token : allTaskTokens) {
+                        if (!tokensToAdd.contains(token)) {
+                            tokensToAdd.add(token);
+                        }
+                    }
+                }
+                if (listsToAdd[4]) {
+                    for (Token token : allProxyTokens) {
+                        if (!tokensToAdd.contains(token)) {
+                            tokensToAdd.add(token);
+                        }
+                    }
+                }
                 if (!taskTokensToAdd.isEmpty()) {
                     for (Token token : taskTokensToAdd) {
                         if (!tokensToAdd.contains(token)) {
@@ -736,7 +788,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 }
                 if (genericCount > 0) {
                     for (int i = 0; i < genericCount; i++) {
-                        taskTokensToAdd.add(Engine.getInstance().getGenericToken());
+                        tokensToAdd.add(Engine.getInstance().getGenericToken());
                     }
                 }
             }
@@ -750,20 +802,27 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         for (InputEvent ie : transition.getInputEvents()) {
             if (ie instanceof BlockingInputEvent && ie.getRelevantProxyList() == null) {
                 eventClassesToRemove.add(ie.getClass());
+
+                // Clear lookup
+                if (clonedIeTable.containsKey(ie)) {
+                    HashMap<ProxyInt, InputEvent> proxyLookup = clonedIeTable.get(ie);
+                    proxyLookup.clear();
+                }
+
             }
         }
         // Get the clones of those classes
-        ArrayList<InputEvent> eventsToRemove = new ArrayList<InputEvent>();
+        ArrayList<InputEvent> clonedIesToRemove = new ArrayList<InputEvent>();
         for (InputEvent ie : transition.getInputEvents()) {
             if (eventClassesToRemove.contains(ie.getClass()) && ie.getRelevantProxyList() != null) {
-                eventsToRemove.add(ie);
+                clonedIesToRemove.add(ie);
             }
         }
         // Remove the clones
-        for (InputEvent ie : eventsToRemove) {
-            activeInputEvents.remove(ie);
-            transition.removeInputEvent(ie);
-            inputEventToTransitionMap.remove(ie);
+        for (InputEvent clonedIe : clonedIesToRemove) {
+            activeInputEvents.remove(clonedIe);
+            transition.removeInputEvent(clonedIe);
+            inputEventToTransitionMap.remove(clonedIe);
         }
 
         // Clear our input event status, in case we re-enter a previous place
@@ -796,12 +855,36 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             }
         }
 
+        // Check to see if any tokens are left in this place, or if it has become inactive
         if (place.getTokens().isEmpty()) {
             place.setIsActive(false);
             // This place is no longer active, unregister all input events from the event mapper
             for (Transition transition : place.getOutTransitions()) {
-                for (InputEvent inputEvent : transition.getInputEvents()) {
-                    InputEventMapper.getInstance().unregisterEvent(inputEvent);
+                boolean stillActive = false;
+                for (Place inPlace : transition.getInPlaces()) {
+                    if (inPlace != place && inPlace.getIsActive()) {
+                        stillActive = true;
+                        break;
+                    }
+                }
+                if (!stillActive) {
+                    for (InputEvent inputEvent : transition.getInputEvents()) {
+                        if (!activeInputEvents.contains(inputEvent)) {
+                            LOGGER.warning("Tried to remove IE: " + inputEvent + " from activeInputEvents, but it is not a member");
+                        }
+                        activeInputEvents.remove(inputEvent);
+
+                        InputEventMapper.getInstance().unregisterEvent(inputEvent);
+
+                        if (inputEventToTransitionMap.containsKey(inputEvent)) {
+                            Transition t = inputEventToTransitionMap.remove(inputEvent);
+                            LOGGER.log(Level.FINE, "\t Removed <" + inputEvent + ", " + t + "> from inputEventToTransitionMap");
+                        } else {
+                            LOGGER.warning("\t Tried to remove IE: " + inputEvent + " from inputEventToTransitionMap, but it is not a key");
+                        }
+                    }
+                } else {
+                    LOGGER.log(Level.FINE, "\t Not unregistering transition: " + transition + " as other connected Places are still active");
                 }
             }
 
@@ -813,11 +896,12 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     private synchronized void enterPlace(Place place, Token token, boolean checkForTransition) {
         ArrayList<Token> tokens = new ArrayList<Token>();
         tokens.add(token);
+        LOGGER.info("enter place 4");
         enterPlace(place, tokens, checkForTransition);
     }
 
     private synchronized void enterPlace(Place place, ArrayList<Token> tokens, boolean checkForTransition) {
-        LOGGER.log(Level.INFO, "Entering " + place + " with Tokens: " + tokens + " with checkForTransition: " + checkForTransition);
+        LOGGER.log(Level.INFO, "Entering " + place + " with Tokens: " + tokens + " with checkForTransition: " + checkForTransition + ", getInTransitions: " + place.getInTransitions() + ", inEdges: " + place.getInEdges() + ", getOutTransitions: " + place.getOutTransitions() + ", outEdges: " + place.getOutEdges());
 
         // 1 - Make note that this place should finish being entered before any of its
         //  transitions are actually executed
@@ -836,10 +920,12 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 // Things are not registered, do it now
                 for (Transition transition : place.getOutTransitions()) {
                     for (InputEvent inputEvent : transition.getInputEvents()) {
-                        activeInputEvents.add(inputEvent);
-                        InputEventMapper.getInstance().registerEvent(inputEvent, this);
-                        LOGGER.log(Level.FINE, "\tAdding <" + inputEvent + "," + transition + "> to inputEventToTransitionMap");
-                        inputEventToTransitionMap.put(inputEvent, transition);
+                        if (!inputEventToTransitionMap.containsKey(inputEvent)) {
+                            activeInputEvents.add(inputEvent);
+                            InputEventMapper.getInstance().registerEvent(inputEvent, this);
+                            LOGGER.log(Level.FINE, "\tAdding <" + inputEvent + "," + transition + "> to inputEventToTransitionMap");
+                            inputEventToTransitionMap.put(inputEvent, transition);
+                        }
                     }
                 }
                 place.setIsActive(true);
@@ -849,7 +935,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         // 4 - Invoke each OutputEvent with the new tokens
         processOutputEvents(place.getOutputEvents(), tokens);
 
-        // 5 - Check for sub-missions and start them if required.
+        // 5 - Check for sub-missions and start them if required
         if (place.getSubMission() != null) {
             LOGGER.log(Level.INFO, "\tStarting submission " + place.getSubMission());
             PlanManager planManager = Engine.getInstance().spawnMission(place.getSubMission(), tokens);
@@ -921,8 +1007,8 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 LOGGER.log(Level.INFO, "\tNo variables for " + oe);
             }
             // Find and invoke an appropriate handler
-            if (handlers.containsKey(oe.getClass())) {
-                EventHandlerInt eh = handlers.get(oe.getClass());
+            EventHandlerInt eh = Engine.getInstance().getHandler(oe.getClass());
+            if (eh != null) {
                 LOGGER.log(Level.INFO, "Invoking handler: " + eh + " for OE: " + oe);
                 eh.invoke(oe, tokens);
             } else {
@@ -976,7 +1062,8 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 LOGGER.log(Level.FINE, "\tMatching success on mission UUID comparison");
             }
         }
-        HashMap<InputEvent, Transition> eventsToAdd = new HashMap<InputEvent, Transition>();
+        // Events to add: A list of cloned IEs used to keep track of which proxy's have generated their instance of a Blocking IE
+        HashMap<InputEvent, Transition> clonedEventsToAdd = new HashMap<InputEvent, Transition>();
         ArrayList<InputEvent> eventsToRemove = new ArrayList<InputEvent>();
         // One of our active transitions has an input event that resulted in a subscription to an InformationServiceProvider of this class
         boolean match;
@@ -993,7 +1080,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 LOGGER.log(Level.FINE, "\t\tMatching failed on class comparison: " + paramEvent.getClass() + " != " + generatedEvent.getClass());
                 continue;
             } else {
-                LOGGER.log(Level.INFO, "\t\tMatching success on class: " + paramEvent.getClass());
+                LOGGER.log(Level.FINE, "\t\tMatching success on class: " + paramEvent.getClass());
             }
             // 2b - If defined, we know the output event that caused this to occur
             //  Share a common OutputEvent uuid in a preceding place?
@@ -1004,7 +1091,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 for (Place inPlace : inPlaces) {
                     for (OutputEvent oe : inPlace.getOutputEvents()) {
                         if (oe.getId() == generatedEvent.getRelevantOutputEventId()) {
-                            LOGGER.log(Level.INFO, "\t\tMatching success on relevant OE UUID: " + oe.getId());
+                            LOGGER.log(Level.FINE, "\t\tMatching success on relevant OE UUID: " + oe.getId());
                             match = true;
                         }
                     }
@@ -1014,7 +1101,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                     continue;
                 }
             } else {
-                LOGGER.log(Level.INFO, "\t\tMatching success on UUID - no UUID to match against");
+                LOGGER.log(Level.FINE, "\t\tMatching success on UUID - no UUID to match against");
             }
             // 2c - If defined, this was some sort of proxy triggered event
             //  Have a token (Proxy or Task) for the proxy?
@@ -1033,6 +1120,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                         //  process for each proxy token in all the transition's incoming places
                         //@todo Should it only be for incoming places with RP on the edge going to the transition?
                         LOGGER.log(Level.FINE, "\t\tHandling occurence of BlockingInputEvent with null RP in param: " + paramEvent + " and defined RP in gen: " + generatedEvent);
+
                         Transition transition = inputEventToTransitionMap.get(paramEvent);
                         HashMap<ProxyInt, InputEvent> proxyLookup;
                         if (clonedIeTable.containsKey(paramEvent)) {
@@ -1100,7 +1188,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                                 // Add the cloned ie to the lookup table
                                 proxyLookup.put(proxy, clonedEvent);
                                 // Add the cloned ie to the list of input events waiting to be fulfilled
-                                eventsToAdd.put(clonedEvent, transition);
+                                clonedEventsToAdd.put(clonedEvent, transition);
                                 createdClones.add(clonedEvent);
                             }
                         }
@@ -1156,7 +1244,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                         }
                     }
                     if (match) {
-                        LOGGER.log(Level.INFO, "\t\tMatching success on relevant proxy - param event's relevant proxy matched gen event's relevant proxy");
+                        LOGGER.log(Level.FINE, "\t\tMatching success on relevant proxy - param event's relevant proxy matched gen event's relevant proxy");
                         // The process above has occurred previously, so we have versions of the ie with the proxy specified
                         matchingEvents.add(paramEvent);
                     } else {
@@ -1165,21 +1253,23 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                     }
                 }
             } else {
-                LOGGER.log(Level.INFO, "\t\tMatching success on relevant proxy - gen event had no relevant proxy to match");
+                LOGGER.log(Level.FINE, "\t\tMatching success on relevant proxy - gen event had no relevant proxy to match");
                 // Generator event had no relevant proxy so no matching is necessary
                 matchingEvents.add(paramEvent);
             }
         }
-        LOGGER.log(Level.INFO, "\tResult of comparisons: add " + eventsToAdd.size() + ", remove " + eventsToRemove.size() + ", update " + matchingEvents.size());
 
-        for (InputEvent ie : eventsToAdd.keySet()) {
+        LOGGER.log(Level.INFO, "\tResult of comparisons: add " + clonedEventsToAdd.size() + ", remove " + eventsToRemove.size() + ", update " + matchingEvents.size());
+
+        for (InputEvent ie : clonedEventsToAdd.keySet()) {
             LOGGER.log(Level.INFO, "\t\tAdding " + ie);
             activeInputEvents.add(ie);
-            Transition t = eventsToAdd.get(ie);
+            Transition t = clonedEventsToAdd.get(ie);
             t.addInputEvent(ie);
             inputEventToTransitionMap.put(ie, t);
         }
         for (InputEvent ie : eventsToRemove) {
+            // THIS LIST IS NEVER MODIFIED
             LOGGER.log(Level.INFO, "\t\tRemoving " + ie);
             activeInputEvents.remove(ie);
             Transition t = inputEventToTransitionMap.get(ie);
@@ -1189,7 +1279,6 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         for (InputEvent ie : matchingEvents) {
             LOGGER.log(Level.INFO, "\t\tUpdating " + ie);
             ie.setGeneratorEvent(generatedEvent);
-            activeInputEvents.remove(ie);
             // Handle updated event
             processUpdatedParamEvent(ie);
         }
@@ -1202,6 +1291,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         InputEvent generatorEvent = updatedParamEvent.getGeneratorEvent();
         if (!inputEventToTransitionMap.containsKey(updatedParamEvent)) {
             LOGGER.severe("No mapping from updated param event " + updatedParamEvent + " to transition!");
+            return;
         }
         Transition transition = inputEventToTransitionMap.get(updatedParamEvent);
 
@@ -1231,17 +1321,15 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         if (generatorEvent instanceof MissingParamsReceived) {
             MissingParamsReceived paramsReceived = (MissingParamsReceived) generatorEvent;
             LOGGER.log(Level.INFO, "Writing parameters from MissingParamsReceived: " + paramsReceived);
-            Hashtable<Field, Object> fieldValues = paramsReceived.getFieldValues();
-            Hashtable<Field, ReflectedEventSpecification> fieldToEventSpec = paramsReceived.getFieldToEventSpec();
-            for (Field field : fieldValues.keySet()) {
-                if (fieldToEventSpec.containsKey(field)) {
-                    ReflectedEventSpecification orig = fieldToEventSpec.get(field);
-                    orig.addFieldDefinition(field.getName(), fieldValues.get(field));
-                } else {
-                    LOGGER.severe("\tCould not find field for MissingParamsReceived value: " + field);
+            Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues = paramsReceived.getEventSpecToFieldValues();
+            for (ReflectedEventSpecification eventSpec : eventSpecToFieldValues.keySet()) {
+                Hashtable<Field, Object> fieldsToValues = eventSpecToFieldValues.get(eventSpec);
+                for (Field field : fieldsToValues.keySet()) {
+                    eventSpec.addFieldDefinition(field.getName(), fieldsToValues.get(field));
                 }
             }
 
+            // Check if we have any required params that are still not defined
             ArrayList<ReflectedEventSpecification> missing = mSpec.getEventSpecsRequiringParams();
             if (missing.size() > 0) {
                 for (ReflectedEventSpecification eventSpec : missing) {
@@ -1295,7 +1383,6 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         // 3 - Update the input event's status in the transition, remove it from the "active" input event list, and check if the transition should trigger now
         synchronized (activeInputEvents) {
             transition.setInputEventStatus(updatedParamEvent, true);
-            activeInputEvents.remove(updatedParamEvent);
             HashMap<Place, ArrayList<Token>> tokensToRemove = checkTransition(transition);
             if (tokensToRemove != null) {
                 executeTransition(transition, tokensToRemove);
@@ -1397,15 +1484,5 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     @Override
     public void planAborted(PlanManager planManager) {
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public void printGraph(MissionPlanSpecification mSpec) {
-        System.out.println("### startPlace: " + startPlace.getName());
-        for (OutputEvent oe : startPlace.getOutputEvents()) {
-            System.out.println("###\t : " + oe.getClass().getSimpleName());
-            for (Markup m : oe.getMarkups()) {
-                System.out.println("###\t\t : " + m.getClass().getSimpleName());
-            }
-        }
     }
 }

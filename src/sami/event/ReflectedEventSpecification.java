@@ -93,7 +93,7 @@ public class ReflectedEventSpecification implements java.io.Serializable {
 
     public void setMarkupSpecs(ArrayList<ReflectedMarkupSpecification> markupSpecs) {
         this.markupSpecs = markupSpecs;
-        System.out.println("### set markupSpecs: " + markupSpecs);
+//        System.out.println("### set markupSpecs: " + markupSpecs);
     }
 
     public Object getFieldDefinition(String fieldName) {
@@ -207,34 +207,32 @@ public class ReflectedEventSpecification implements java.io.Serializable {
                 instantiateEventVariables(event, fieldNameToTransDefinition);
                 instantiateMarkups(event, markupSpecs);
 
-                System.out.println("### markupSpecs: " + markupSpecs.toString());
-
-                System.out.println("### Instatianted event");
-                System.out.println("### Class: " + event.getClass().getSimpleName());
-                System.out.println("###\t Fields:");
-                for (Field field : event.getClass().getDeclaredFields()) {
-                    try {
-                        System.out.println("###\t\t " + field.get(event));
-                    } catch (IllegalArgumentException ex) {
-                        Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (IllegalAccessException ex) {
-                        Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-                System.out.println("###\t Markups:");
-                for (Markup markup : event.getMarkups()) {
-                    System.out.println("###\t\t Markup: " + markup.getClass().getSimpleName());
-                    for (Field field : markup.getClass().getDeclaredFields()) {
-                        try {
-                            System.out.println("###\t\t\t " + field.get(markup));
-                        } catch (IllegalArgumentException ex) {
-                            Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
-                        } catch (IllegalAccessException ex) {
-                            Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-
+//                System.out.println("### markupSpecs: " + markupSpecs.toString());
+//                System.out.println("### Instatianted event");
+//                System.out.println("### Class: " + event.getClass().getSimpleName());
+//                System.out.println("###\t Fields:");
+//                for (Field field : event.getClass().getDeclaredFields()) {
+//                    try {
+//                        System.out.println("###\t\t " + field.get(event));
+//                    } catch (IllegalArgumentException ex) {
+//                        Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+//                    } catch (IllegalAccessException ex) {
+//                        Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+//                }
+//                System.out.println("###\t Markups:");
+//                for (Markup markup : event.getMarkups()) {
+//                    System.out.println("###\t\t Markup: " + markup.getClass().getSimpleName());
+//                    for (Field field : markup.getClass().getDeclaredFields()) {
+//                        try {
+//                            System.out.println("###\t\t\t " + field.get(markup));
+//                        } catch (IllegalArgumentException ex) {
+//                            Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+//                        } catch (IllegalAccessException ex) {
+//                            Logger.getLogger(ReflectedEventSpecification.class.getName()).log(Level.SEVERE, null, ex);
+//                        }
+//                    }
+//                }
             } else {
                 LOGGER.log(Level.SEVERE, "Creation of instance failed for " + className, this);
             }

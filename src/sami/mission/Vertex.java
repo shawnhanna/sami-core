@@ -117,16 +117,14 @@ public class Vertex implements java.io.Serializable {
     }
 
     public void prepareForRemoval() {
-        Vertex connection;
-        // Remove edges ending here
-        for (Edge edge : inEdges) {
-            connection = edge.getStart();
-            connection.removeOutEdge(edge);
+        // Remove each edge
+        ArrayList<Edge> edgeList = (ArrayList<Edge>)inEdges.clone();
+        for(Edge inEdge : edgeList) {
+            inEdge.prepareForRemoval();
         }
-        // Remove edges starting here
-        for (Edge edge : outEdges) {
-            connection = edge.getEnd();
-            connection.removeInEdge(edge);
+        edgeList = (ArrayList<Edge>)outEdges.clone();
+        for(Edge outEdge : edgeList) {
+            outEdge.prepareForRemoval();
         }
     }
 

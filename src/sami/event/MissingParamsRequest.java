@@ -13,21 +13,15 @@ public class MissingParamsRequest extends OutputEvent {
     // Description for each field
     public static final HashMap<String, String> fieldNameToDescription = new HashMap<String, String>();
     // Fields
-    protected final Hashtable<Field, String> FIELD_DESCRIPTIONS;
-    protected final Hashtable<Field, ReflectedEventSpecification> FIELD_TO_EVENT_SPEC;
+    protected final Hashtable<ReflectedEventSpecification, Hashtable<Field, String>> eventSpecToFieldDescriptions;
 
-    public MissingParamsRequest(UUID missionId, Hashtable<Field, String> fieldDescriptions, Hashtable<Field, ReflectedEventSpecification> fieldToEventSpec) {
+    public MissingParamsRequest(UUID missionId, Hashtable<ReflectedEventSpecification, Hashtable<Field, String>> eventSpecToFieldDescriptions) {
         this.missionId = missionId;
-        this.FIELD_DESCRIPTIONS = fieldDescriptions;
-        this.FIELD_TO_EVENT_SPEC = fieldToEventSpec;
+        this.eventSpecToFieldDescriptions = eventSpecToFieldDescriptions;
         id = UUID.randomUUID();
     }
 
-    public Hashtable<Field, String> getFieldDescriptions() {
-        return FIELD_DESCRIPTIONS;
-    }
-
-    public Hashtable<Field, ReflectedEventSpecification> getFieldToEventSpec() {
-        return FIELD_TO_EVENT_SPEC;
+    public Hashtable<ReflectedEventSpecification, Hashtable<Field, String>> getFieldDescriptions() {
+        return eventSpecToFieldDescriptions;
     }
 }

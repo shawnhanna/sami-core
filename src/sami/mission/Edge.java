@@ -111,8 +111,21 @@ public class Edge implements java.io.Serializable {
     }
 
     public void prepareForRemoval() {
-        startVertex.removeOutEdge(this);
-        endVertex.removeInEdge(this);
+        if (startVertex instanceof Place && endVertex instanceof Transition) {
+            Place startPlace = (Place) startVertex;
+            Transition endTransition = (Transition) endVertex;
+            startPlace.removeOutTransition(endTransition);
+            startPlace.removeOutEdge(this);
+            endTransition.removeInPlace(startPlace);
+            endTransition.removeInEdge(this);
+        } else if (startVertex instanceof Transition && endVertex instanceof Place) {
+            Transition startTransition = (Transition) startVertex;
+            Place endPlace = (Place) endVertex;
+            startTransition.removeOutPlace(endPlace);
+            startTransition.removeOutEdge(this);
+            endPlace.removeInTransition(startTransition);
+            endPlace.removeInEdge(this);
+        }
     }
 
     public void updateTag() {

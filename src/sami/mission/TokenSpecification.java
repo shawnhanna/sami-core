@@ -17,7 +17,7 @@ public class TokenSpecification implements java.io.Serializable {
 
         Task, Proxy,
         MatchNoReq, MatchRelevantProxy, MatchGeneric,
-        TakeAll, CopyRelevantTask, CopyRelevantProxy, TakeRelevantTask, TakeRelevantProxy, TakeGeneric, TakeNone, AddGeneric
+        TakeAll, CopyRelevantTask, CopyRelevantProxy, TakeRelevantTask, TakeRelevantProxy, TakeGeneric, TakeNone, AddGeneric, ConsumeRelevantTask, ConsumeRelevantProxy, ConsumeGeneric, TakeTask, TakeProxy
     };
     private TokenType type;
     String taskClassName;

@@ -2,6 +2,7 @@ package sami.markup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import sami.proxy.ProxyInt;
 
 /**
  *
@@ -18,6 +19,8 @@ public class RelevantProxy extends Markup {
     // Fields
     public Proxies proxies;
     public ShowPaths showPaths;
+
+    ArrayList<ProxyInt> relevantProxies;
 
     public enum Proxies {
 
@@ -51,5 +54,13 @@ public class RelevantProxy extends Markup {
 
         System.out.println(rp.enumFieldNames.toString());
         System.out.println(a.enumFieldNames.toString());
+    }
+
+    public ArrayList<ProxyInt> getRelevantProxies() {
+        return relevantProxies;
+    }
+
+    public void setRelevantProxies(ArrayList<ProxyInt> relevantProxies) {
+        this.relevantProxies = relevantProxies;
     }
 }

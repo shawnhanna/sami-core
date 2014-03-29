@@ -140,7 +140,7 @@ public class MarkupManager {
             if (markup instanceof Attention) {
                 Attention attention = (Attention) markup;
                 if (attention.attentionType == Attention.AttentionType.BLINK) {
-                    System.out.println("### Starting blink timer");
+//                    System.out.println("### Starting blink timer");
                     blinkTimer = new Timer(attention.blink.cycleLength / 2, null);
                     blinkTimer.setRepeats(true);
                     blinkTimer.setCoalesce(true);
@@ -157,7 +157,7 @@ public class MarkupManager {
                     blinkTimer.start();
                 }
                 if (attention.attentionEnd == Attention.AttentionEnd.ON_CLICK) {
-                    System.out.println("### Needs attention");
+//                    System.out.println("### Needs attention");
                     synchronized (attentionLock) {
                         needsAttention = true;
                     }
@@ -203,7 +203,7 @@ public class MarkupManager {
 //                    }
 //                }
             } else if (markup instanceof MixedInitiativeTrigger) {
-                System.out.println("### Starting MI trigger");
+//                System.out.println("### Starting MI trigger");
                 MixedInitiativeTrigger trigger = (MixedInitiativeTrigger) markup;
                 if (trigger.trigger == MixedInitiativeTrigger.Trigger.IMMEDIATELY
                         || trigger.trigger == MixedInitiativeTrigger.Trigger.TIMEOUT) {
@@ -272,7 +272,7 @@ public class MarkupManager {
 //        }
 //    }
     public void blinkFrame(final UiFrame target, Attention attention) {
-        System.out.println("### Blink target: " + target);
+//        System.out.println("### Blink target: " + target);
         blinkTimer.addActionListener(new ActionListener() {
             boolean blink = false;
             Border border = BorderFactory.createMatteBorder(10, 10, 10, 10, Color.YELLOW);
@@ -291,7 +291,7 @@ public class MarkupManager {
     }
 
     public void blinkPanel(final UiPanel target, Attention attention) {
-        System.out.println("### Blink target: " + target);
+//        System.out.println("### Blink target: " + target);
         blinkTimer.addActionListener(new ActionListener() {
             boolean blink = false;
             Border border = BorderFactory.createMatteBorder(10, 10, 10, 10, Color.YELLOW);
@@ -310,7 +310,7 @@ public class MarkupManager {
     }
 
     public void highlightTarget(JComponent target, Attention attention) {
-        System.out.println("### Highlight target: " + target);
+//        System.out.println("### Highlight target: " + target);
         target.setBorder(BorderFactory.createMatteBorder(10, 10, 10, 10, Color.YELLOW));
     }
 
@@ -350,7 +350,7 @@ public class MarkupManager {
     }
 
     public void markupConsumed(Markup markup) {
-        System.out.println("### Markup consumed: " + markup);
+//        System.out.println("### Markup consumed: " + markup);
         if (markup instanceof Attention) {
             Attention attention = (Attention) markup;
             if (attention.attentionType == Attention.AttentionType.BLINK) {

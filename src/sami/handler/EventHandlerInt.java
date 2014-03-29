@@ -11,4 +11,6 @@ import java.util.ArrayList;
 public interface EventHandlerInt {
 
     public void invoke(OutputEvent e, ArrayList<Token> tokens);
+
+//    public void terminate(OutputEvent e, ArrayList<Token> tokens);
 }

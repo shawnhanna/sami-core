@@ -176,6 +176,21 @@ public class MissionPlanSpecification implements java.io.Serializable {
         TokenSpecification addGenericTokenSpec = new TokenSpecification("Add G", TokenType.AddGeneric, null);
         outTokenSpecList.add(addGenericTokenSpec);
         outRecovTokenSpecList.add(addGenericTokenSpec);
+        TokenSpecification consumeGenericTokenSpec = new TokenSpecification("Consume G", TokenType.ConsumeGeneric, null);
+        outTokenSpecList.add(consumeGenericTokenSpec);
+        outRecovTokenSpecList.add(consumeGenericTokenSpec);
+        TokenSpecification consumeRelProxyTokenSpec = new TokenSpecification("Consume RP", TokenType.ConsumeRelevantProxy, null);
+        outTokenSpecList.add(consumeRelProxyTokenSpec);
+        outRecovTokenSpecList.add(consumeRelProxyTokenSpec);
+        TokenSpecification consumeRelTaskTokenSpec = new TokenSpecification("Consume RT", TokenType.ConsumeRelevantTask, null);
+        outTokenSpecList.add(consumeRelTaskTokenSpec);
+        outRecovTokenSpecList.add(consumeRelTaskTokenSpec);
+        TokenSpecification takeTokenSpec = new TokenSpecification("Take Task", TokenType.TakeTask, null);
+        outTokenSpecList.add(takeTokenSpec);
+        outRecovTokenSpecList.add(takeTokenSpec);
+        TokenSpecification takeProxySpec = new TokenSpecification("Take Proxy", TokenType.TakeProxy, null);
+        outTokenSpecList.add(takeProxySpec);
+        outRecovTokenSpecList.add(takeProxySpec);
         // Outgoing for recovery mode edges
         TokenSpecification copyRelProxyTokenSpec = new TokenSpecification("Copy RP", TokenType.CopyRelevantProxy, null);
         outRecovTokenSpecList.add(copyRelProxyTokenSpec);
@@ -462,5 +477,105 @@ public class MissionPlanSpecification implements java.io.Serializable {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    public void printGraph() {
+        LOGGER.info("Printing " + name);
+        int placeCount = 0, transitionCount = 0;
+        for (Vertex v : graph.getVertices()) {
+            if (v instanceof Place) {
+                placeCount++;
+            } else if (v instanceof Transition) {
+                transitionCount++;
+            }
+        }
+        LOGGER.info("\t Places: " + placeCount);
+        for (Vertex v : graph.getVertices()) {
+            if (v instanceof Place) {
+                Place p = (Place) v;
+                LOGGER.info("\t\t " + p.getTag());
+                for (Transition t : p.getInTransitions()) {
+                    LOGGER.info("\t\t\t in t: " + t.getTag());
+                }
+                for (Transition t : p.getOutTransitions()) {
+                    LOGGER.info("\t\t\t out t: " + t.getTag());
+                }
+                for (Edge e : p.getInEdges()) {
+                    LOGGER.info("\t\t\t in e: " + e.getTag());
+                }
+                for (Edge e : p.getOutEdges()) {
+                    LOGGER.info("\t\t\t out e: " + e.getTag());
+                }
+            }
+        }
+        LOGGER.info("\t Transitions: " + transitionCount);
+        for (Vertex v : graph.getVertices()) {
+            if (v instanceof Transition) {
+                Transition t = (Transition) v;
+                LOGGER.info("\t\t " + ((Transition) v).getTag());
+                for (Place p : t.getInPlaces()) {
+                    LOGGER.info("\t\t\t in p: " + p.getTag());
+                }
+                for (Place p : t.getOutPlaces()) {
+                    LOGGER.info("\t\t\t out p: " + p.getTag());
+                }
+                for (Edge e : t.getInEdges()) {
+                    LOGGER.info("\t\t\t in e: " + e.getTag());
+                }
+                for (Edge e : t.getOutEdges()) {
+                    LOGGER.info("\t\t\t out e: " + e.getTag());
+                }
+            }
+        }
+        LOGGER.info("\t Edges: " + graph.getEdges().size());
+        for (Edge e : graph.getEdges()) {
+            LOGGER.info("\t\t " + ((Edge) e).getTag());
+            LOGGER.info("\t\t\t start: " + e.getStart());
+            LOGGER.info("\t\t\t end: " + e.getEnd());
+        }
+    }
+
+    public void removePlace(Place place) {
+        // First remove the place and its edges from mission spec data structures
+        for (Edge inEdge : place.getInEdges()) {
+            removeTokenSpecList(inEdge);
+            graph.removeEdge(inEdge);
+        }
+        for (Edge outEdge : place.getOutEdges()) {
+            removeTokenSpecList(outEdge);
+            graph.removeEdge(outEdge);
+        }
+        removeEventSpecList(place);
+        graph.removeVertex(place);
+
+        // Now remove the place and edge data structures
+        place.prepareForRemoval();
+    }
+
+    public void removeTransition(Transition transition) {
+        // First remove the transition and its edges from mission spec data structures
+        for (Edge inEdge : transition.getInEdges()) {
+            removeTokenSpecList(inEdge);
+            graph.removeEdge(inEdge);
+        }
+        for (Edge outEdge : transition.getOutEdges()) {
+            removeTokenSpecList(outEdge);
+            graph.removeEdge(outEdge);
+        }
+        removeEventSpecList(transition);
+        graph.removeVertex(transition);
+
+        // Now remove the transition and edge data structures
+        transition.prepareForRemoval();
+    }
+
+    public void removeEdge(Edge edge) {
+        // First remove the edge from mission spec data structures
+        removeTokenSpecList(edge);
+        graph.removeEdge(edge);
+
+        // Now remove the transition and edge data structures
+        edge.prepareForRemoval();
+
     }
 }

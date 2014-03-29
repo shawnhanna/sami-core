@@ -5,10 +5,12 @@ import com.perc.mitpas.adi.mission.planning.task.Task;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sami.config.DomainConfigManager;
+import sami.handler.EventHandlerInt;
 import sami.mission.MissionPlanSpecification;
 import sami.mission.Place;
 import sami.mission.Token;
@@ -57,12 +59,21 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
     private final Token takeRelProxyToken = new Token("Take RP", TokenType.TakeRelevantProxy, null, null);
     private final Token takeRelTaskToken = new Token("Take RT", TokenType.TakeRelevantTask, null, null);
     private final Token addGenericToken = new Token("Add G", TokenType.AddGeneric, null, null);
+    private final Token consumeGenericToken = new Token("Consume G", TokenType.ConsumeGeneric, null, null);
+    private final Token consumeRelProxyToken = new Token("Consume RP", TokenType.ConsumeRelevantProxy, null, null);
+    private final Token consumeRelTaskToken = new Token("Consume RT", TokenType.ConsumeRelevantTask, null, null);
+    private final Token takeTaskToken = new Token("Take Task", TokenType.TakeTask, null, null);
+    private final Token takeProxyToken = new Token("Take Proxy", TokenType.TakeProxy, null, null);
     // Lookup table used for retrieving proxy based tokens 
     private HashMap<ProxyInt, Token> proxyToToken = new HashMap<ProxyInt, Token>();
     // Lookup table used for retrieving task based tokens (ie for updating a token after a resource allocation is received)
     private HashMap<ITask, Token> taskToToken = new HashMap<ITask, Token>();
     private HashMap<TokenSpecification, Token> tokenSpecToToken = new HashMap<TokenSpecification, Token>();
     private HashMap<UUID, PlanManager> missionIdToPlanManager = new HashMap<UUID, PlanManager>();
+    // Configuration of output events and the handler classes that will execute them
+    private Hashtable<Class, EventHandlerInt> handlers = new Hashtable<Class, EventHandlerInt>();
+
+    ;
 
     private static class EngineHolder {
 
@@ -100,6 +111,33 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
         if (observerServer == null) {
             LOGGER.log(Level.SEVERE, "Failed to find Observer Server in domain configuration!");
         }
+
+        Hashtable<String, String> handlerMapping = DomainConfigManager.getInstance().domainConfiguration.eventHandlerMapping;
+        Class eventClass, handlerClass;
+        EventHandlerInt handlerObject;
+        HashMap<String, EventHandlerInt> handlerObjects = new HashMap<String, EventHandlerInt>();
+        String handlerClassName;
+        for (String ieClassName : handlerMapping.keySet()) {
+            handlerClassName = handlerMapping.get(ieClassName);
+            try {
+                eventClass = Class.forName(ieClassName);
+                handlerClass = Class.forName(handlerClassName);
+                if (!handlerObjects.containsKey(handlerClassName)) {
+                    // First use of this handler class, create an instance and add it to our hashmap
+                    EventHandlerInt newHandlerObject = (EventHandlerInt) handlerClass.newInstance();
+                    handlerObjects.put(handlerClassName, newHandlerObject);
+                }
+                handlerObject = handlerObjects.get(handlerClassName);
+                handlers.put(eventClass, handlerObject);
+            } catch (InstantiationException ex) {
+                ex.printStackTrace();
+            } catch (IllegalAccessException ex) {
+                ex.printStackTrace();
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
+            }
+        }
+
         tokens.add(genericToken);
         tokens.add(noReqToken);
         tokens.add(relProxyToken);
@@ -111,6 +149,11 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
         tokens.add(takeRelProxyToken);
         tokens.add(takeRelTaskToken);
         tokens.add(addGenericToken);
+        tokens.add(consumeGenericToken);
+        tokens.add(consumeRelProxyToken);
+        tokens.add(consumeRelTaskToken);
+        tokens.add(takeTaskToken);
+        tokens.add(takeProxyToken);
     }
 
     public static Engine getInstance() {
@@ -259,17 +302,11 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
             planManager.addProxyToken(proxyToken);
         }
 
-
-
-
 //        Location waypoint = new Location(40.44515205369163, -80.01877404355538, 0);
 //        ArrayList<Location> waypoints = new ArrayList<Location>();
 //        waypoints.add(waypoint);
 //        Path path = new PathUtm(waypoints);
 //        p.setPath(path);
-
-
-
     }
 
     @Override
@@ -285,6 +322,10 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
     @Override
     public void observerRemoved(ObserverInt p) {
         observers.remove(p);
+    }
+
+    public EventHandlerInt getHandler(Class outputEventClass) {
+        return handlers.get(outputEventClass);
     }
 
     public Token getGenericToken() {
@@ -331,6 +372,26 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
         return addGenericToken;
     }
 
+    public Token getConsumeGenericToken() {
+        return consumeGenericToken;
+    }
+
+    public Token getConsumeRelProxyToken() {
+        return consumeRelProxyToken;
+    }
+
+    public Token getConsumeRelTaskToken() {
+        return consumeRelTaskToken;
+    }
+
+    public Token getTakeTaskToken() {
+        return takeTaskToken;
+    }
+
+    public Token getTakeProxyToken() {
+        return takeProxyToken;
+    }
+
     public Token getToken(ProxyInt proxy) {
         return proxyToToken.get(proxy);
     }
@@ -362,6 +423,16 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
             return takeRelTaskToken;
         } else if (tSpec.getType() == TokenSpecification.TokenType.AddGeneric) {
             return addGenericToken;
+        } else if (tSpec.getType() == TokenSpecification.TokenType.ConsumeGeneric) {
+            return consumeGenericToken;
+        } else if (tSpec.getType() == TokenSpecification.TokenType.ConsumeRelevantProxy) {
+            return consumeRelProxyToken;
+        } else if (tSpec.getType() == TokenSpecification.TokenType.ConsumeRelevantTask) {
+            return consumeRelTaskToken;
+        } else if (tSpec.getType() == TokenSpecification.TokenType.TakeTask) {
+            return takeTaskToken;
+        } else if (tSpec.getType() == TokenSpecification.TokenType.TakeProxy) {
+            return takeProxyToken;
         } else {
             return tokenSpecToToken.get(tSpec);
         }

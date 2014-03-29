@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.logging.Logger;
 import sami.markup.ReflectedMarkupSpecification;
 
 /**
@@ -17,6 +18,7 @@ import sami.markup.ReflectedMarkupSpecification;
  */
 public class Transition extends Vertex {
 
+    private static final Logger LOGGER = Logger.getLogger(Place.class.getName());
     static final long serialVersionUID = 5L;
     private ArrayList<Place> inPlaces = new ArrayList<Place>();
     private ArrayList<Place> outPlaces = new ArrayList<Place>();
@@ -28,10 +30,18 @@ public class Transition extends Vertex {
     }
 
     public void addInPlace(Place p) {
+        if (inPlaces.contains(p)) {
+            LOGGER.severe("Tried to add pre-existing inPlace: " + p);
+            return;
+        }
         inPlaces.add(p);
     }
 
     public void removeInPlace(Place p) {
+        if (!inPlaces.contains(p)) {
+            LOGGER.severe("Tried to remove non-existing inPlace: " + p);
+            return;
+        }
         inPlaces.remove(p);
     }
 
@@ -39,11 +49,27 @@ public class Transition extends Vertex {
         return inPlaces;
     }
 
+    public void setInPlaces(ArrayList<Place> inPlaces) {
+        this.inPlaces = inPlaces;
+    }
+
+    public void setOutPlaces(ArrayList<Place> outPlaces) {
+        this.outPlaces = outPlaces;
+    }
+
     public void addOutPlace(Place p) {
+        if (outPlaces.contains(p)) {
+            LOGGER.severe("Tried to add pre-existing outPlace: " + p);
+            return;
+        }
         outPlaces.add(p);
     }
 
     public void removeOutPlace(Place p) {
+        if (!outPlaces.contains(p)) {
+            LOGGER.severe("Tried to remove non-existing outPlace: " + p);
+            return;
+        }
         outPlaces.remove(p);
     }
 
@@ -79,34 +105,16 @@ public class Transition extends Vertex {
         return false;
     }
 
+    public Hashtable<InputEvent, Boolean> getInputEventStatus() {
+        return (Hashtable<InputEvent, Boolean>) inputEventStatus.clone();
+    }
+
     public void clearInputEventStatus() {
         inputEventStatus.clear();
     }
 
     public void setInputEventStatus(InputEvent e, boolean received) {
         inputEventStatus.put(e, new Boolean(received));
-    }
-
-    public void prepareForRemoval() {
-        Vertex connection;
-        // Remove edges ending here
-        for (Edge edge : inEdges) {
-            connection = edge.getStart();
-            connection.removeOutEdge(edge);
-        }
-        // Remove edges starting here
-        for (Edge edge : outEdges) {
-            connection = edge.getEnd();
-            connection.removeInEdge(edge);
-        }
-        // Remove connection to preceding places
-        for (Place place : inPlaces) {
-            place.removeOutTransition(this);
-        }
-        // Remove connection to following places
-        for (Place place : outPlaces) {
-            place.removeInTransition(this);
-        }
     }
 
     public Shape getShape() {

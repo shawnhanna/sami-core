@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -70,9 +69,9 @@ public class ReflectedMarkupSpecification implements java.io.Serializable {
     }
 
     private void instantiateMarkupVariables(Markup markup, HashMap<String, Object> fieldNameToObject) {
-        System.out.println("### instantiateMarkupVariables");
-        System.out.println("###\t markup: " + markup.getClass().getSimpleName());
-        System.out.println("###\t fieldNameToObject: " + fieldNameToObject.toString());
+//        System.out.println("### instantiateMarkupVariables");
+//        System.out.println("###\t markup: " + markup.getClass().getSimpleName());
+//        System.out.println("###\t fieldNameToObject: " + fieldNameToObject.toString());
         for (Field field : markup.getClass().getDeclaredFields()) {
             Object definition = fieldNameToObject.get(field.getName());
             if (definition != null) {

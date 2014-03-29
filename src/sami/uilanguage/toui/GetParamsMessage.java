@@ -11,14 +11,7 @@ import java.util.UUID;
  */
 public class GetParamsMessage extends CreationMessage {
 
-    protected final Hashtable<Field, ReflectedEventSpecification> fieldToEventSpec;
-
-    public GetParamsMessage(UUID relevantOutputEventId, UUID missionId, int priority, Hashtable<Field, String> fieldDescriptions, Hashtable<Field, ReflectedEventSpecification> fieldToEventSpec) {
-        super(relevantOutputEventId, missionId, priority, fieldDescriptions);
-        this.fieldToEventSpec = fieldToEventSpec;
-    }
-
-    public Hashtable<Field, ReflectedEventSpecification> getFieldToEventSpec() {
-        return fieldToEventSpec;
+    public GetParamsMessage(UUID relevantOutputEventId, UUID missionId, int priority, Hashtable<ReflectedEventSpecification, Hashtable<Field, String>> eventSpecToFieldDescriptions) {
+        super(relevantOutputEventId, missionId, priority, eventSpecToFieldDescriptions);
     }
 }

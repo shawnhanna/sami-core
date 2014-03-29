@@ -8,6 +8,7 @@ import java.awt.geom.Ellipse2D;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import sami.markup.ReflectedMarkupSpecification;
 
 /**
@@ -16,6 +17,7 @@ import sami.markup.ReflectedMarkupSpecification;
  */
 public class Place extends Vertex {
 
+    private static final Logger LOGGER = Logger.getLogger(Place.class.getName());
     static final long serialVersionUID = 5L;
     private boolean isStart, isEnd;
     private ArrayList<Transition> inTransitions = new ArrayList<Transition>();
@@ -31,11 +33,27 @@ public class Place extends Vertex {
     }
 
     public void addInTransition(Transition t) {
+        if (inTransitions.contains(t)) {
+            LOGGER.severe("Tried to add pre-existing inTransition: " + t);
+            return;
+        }
         inTransitions.add(t);
     }
 
     public void removeInTransition(Transition t) {
+        if (!inTransitions.contains(t)) {
+            LOGGER.severe("Tried to remove non-existing inTransition: " + t);
+            return;
+        }
         inTransitions.remove(t);
+    }
+
+    public void setIntransitions(ArrayList<Transition> inTransitions) {
+        this.inTransitions = inTransitions;
+    }
+
+    public void setOutTransitions(ArrayList<Transition> outTransitions) {
+        this.outTransitions = outTransitions;
     }
 
     public ArrayList<Transition> getInTransitions() {
@@ -43,10 +61,18 @@ public class Place extends Vertex {
     }
 
     public void addOutTransition(Transition t) {
+        if (outTransitions.contains(t)) {
+            LOGGER.severe("Tried to add pre-existing outTransition: " + t);
+            return;
+        }
         outTransitions.add(t);
     }
 
     public void removeOutTransition(Transition t) {
+        if (!outTransitions.contains(t)) {
+            LOGGER.severe("Tried to remove non-existing outTransition: " + t);
+            return;
+        }
         outTransitions.remove(t);
     }
 
@@ -139,28 +165,6 @@ public class Place extends Vertex {
             return new Ellipse2D.Double(-10, -10, 20, 20);
         } else {
             return new Ellipse2D.Double(-15, -15, 30, 30);
-        }
-    }
-
-    public void prepareForRemoval() {
-        Vertex connection;
-        // Remove edges ending here
-        for (Edge edge : inEdges) {
-            connection = edge.getStart();
-            connection.removeOutEdge(edge);
-        }
-        // Remove edges starting here
-        for (Edge edge : outEdges) {
-            connection = edge.getEnd();
-            connection.removeInEdge(edge);
-        }
-        // Remove connection to preceding transitions
-        for (Transition transition : inTransitions) {
-            transition.removeOutPlace(this);
-        }
-        // Remove connection to following transitions
-        for (Transition transition : outTransitions) {
-            transition.removeInPlace(this);
         }
     }
 
