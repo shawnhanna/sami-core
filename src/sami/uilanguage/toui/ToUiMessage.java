@@ -24,6 +24,10 @@ public abstract class ToUiMessage {
         this.missionId = missionId;
     }
 
+    public void addMarkup(Markup markup) {
+        markups.add(markup);
+    }
+
     public ArrayList<Markup> getMarkups() {
         return markups;
     }

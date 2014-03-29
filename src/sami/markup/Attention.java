@@ -57,12 +57,12 @@ public class Attention extends Markup {
 
     public Attention() {
     }
-    
+
     public String toString() {
         return "attentionType: " + attentionType
                 + "attentionEnd " + attentionEnd
                 + "attentionTarget " + attentionTarget
                 + "blinkOption " + blink;
-        
+
     }
 }

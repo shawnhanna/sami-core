@@ -50,4 +50,9 @@ public class RelevantArea extends Markup {
 
     public RelevantArea() {
     }
+
+    @Override
+    public RelevantArea copy() {
+        throw new UnsupportedOperationException("Not implemented yet.");
+    }
 }

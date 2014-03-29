@@ -8,7 +8,7 @@ import sami.markupOption.NumberOption;
  *
  * @author nbb
  */
-public class NumberOptions extends Markup {
+public class NumberOfOptions extends Markup {
 
     // List of enum fields for which an enum option should be selected
     public static final ArrayList<String> enumFieldNames = new ArrayList<String>();
@@ -45,6 +45,6 @@ public class NumberOptions extends Markup {
         enumValueToFieldName.put(Format.TABBED, null);
     }
 
-    public NumberOptions() {
+    public NumberOfOptions() {
     }
 }

@@ -48,6 +48,21 @@ public class RelevantProxy extends Markup {
     public RelevantProxy() {
     }
 
+    @Override
+    public RelevantProxy copy() {
+        RelevantProxy copy = new RelevantProxy();
+        if (fieldNameToVariableName != null) {
+            copy.fieldNameToVariableName = (HashMap<String, String>)fieldNameToVariableName.clone();
+        }
+        
+        copy.proxies = proxies;
+        copy.showPaths = showPaths;
+        if (relevantProxies != null) {
+            copy.relevantProxies = (ArrayList<ProxyInt>) relevantProxies.clone();
+        }
+        return copy;
+    }
+
     public static void main(String[] args) {
         RelevantProxy rp = new RelevantProxy();
         Attention a = new Attention();

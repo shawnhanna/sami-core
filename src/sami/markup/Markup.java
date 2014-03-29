@@ -8,15 +8,15 @@ import java.util.HashMap;
  */
 public class Markup {
 
-    private HashMap<String, String> fieldNameToVariableName = null;
+    protected HashMap<String, String> fieldNameToVariableName = null;
 
     public Markup() {
     }
 
     public Markup copy() {
         Markup copy = new Markup();
-        for (String key : fieldNameToVariableName.keySet()) {
-            copy.fieldNameToVariableName.put(key, fieldNameToVariableName.get(key));
+        if (fieldNameToVariableName != null) {
+            copy.fieldNameToVariableName = (HashMap<String, String>)fieldNameToVariableName.clone();
         }
         return copy;
     }
