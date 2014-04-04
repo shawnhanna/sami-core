@@ -50,6 +50,7 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
     private static final Object lock = new Object();
     private final Token genericToken = new Token("G", TokenType.MatchGeneric, null, null);
     private final Token noReqToken = new Token("No Req", TokenType.MatchNoReq, null, null);
+    private final Token hasProxyToken = new Token("Has Proxy", TokenType.HasProxy, null, null);
     private final Token relProxyToken = new Token("RP", TokenType.MatchRelevantProxy, null, null);
     private final Token copyRelProxyToken = new Token("Copy RP", TokenType.CopyRelevantProxy, null, null);
     private final Token copyRelTaskToken = new Token("Copy RT", TokenType.CopyRelevantTask, null, null);
@@ -143,6 +144,7 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
 
         tokens.add(genericToken);
         tokens.add(noReqToken);
+        tokens.add(hasProxyToken);
         tokens.add(relProxyToken);
         tokens.add(copyRelProxyToken);
         tokens.add(copyRelTaskToken);
@@ -339,6 +341,10 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
         return noReqToken;
     }
 
+    public Token getHasProxyToken() {
+        return hasProxyToken;
+    }
+
     public Token getRelProxyToken() {
         return relProxyToken;
     }
@@ -412,6 +418,8 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
             return genericToken;
         } else if (tSpec.getType() == TokenSpecification.TokenType.MatchNoReq) {
             return noReqToken;
+        }  else if (tSpec.getType() == TokenSpecification.TokenType.HasProxy) {
+            return hasProxyToken;
         } else if (tSpec.getType() == TokenSpecification.TokenType.TakeNone) {
             return noneToken;
         } else if (tSpec.getType() == TokenSpecification.TokenType.MatchRelevantProxy) {

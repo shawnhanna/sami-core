@@ -35,14 +35,12 @@ public class MarkupManager {
     boolean needsAttention = false;
     Timer blinkTimer;
     // MixedInitiativeTrigger
-    private final Object autonomyLock = new Object();
     Timer autonomyTimer;
     //
     JFrame frame;
     ArrayList<MarkupComponent> components = new ArrayList<MarkupComponent>();
     ArrayList<JPanel> panels = new ArrayList<JPanel>();
     ArrayList<JFrame> frames = new ArrayList<JFrame>();
-    ArrayList<MarkupManagerListener> listeners = new ArrayList<MarkupManagerListener>();
 
     public MarkupManager(ToUiMessage toUiMessage) {
         this.toUiMessage = toUiMessage;
@@ -129,12 +127,6 @@ public class MarkupManager {
 //            }
 //        }
 //    }
-    public void addListener(MarkupManagerListener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
-    }
-
     private void handleMarkups() {
         for (Markup markup : toUiMessage.getMarkups()) {
             if (markup instanceof Attention) {
@@ -142,8 +134,6 @@ public class MarkupManager {
                 if (attention.attentionType == Attention.AttentionType.BLINK) {
 //                    System.out.println("### Starting blink timer");
                     blinkTimer = new Timer(attention.blink.cycleLength / 2, null);
-                    blinkTimer.setRepeats(true);
-                    blinkTimer.setCoalesce(true);
                     blinkTimer.setActionCommand("1");
                     blinkTimer.addActionListener(new ActionListener() {
 
@@ -220,8 +210,6 @@ public class MarkupManager {
 //                if (attention.attentionType == Attention.AttentionType.BLINK) {
 //                    System.out.println("### Starting blink timer");
 //                    blinkTimer = new Timer(attention.blink.cycleLength / 2, null);
-//                    blinkTimer.setRepeats(true);
-//                    blinkTimer.setCoalesce(true);
 //                    blinkTimer.start();
 //                    if (attention.attentionEnd == Attention.AttentionEnd.ON_CLICK) {
 //                        System.out.println("### Creating click listener for blink");
@@ -325,9 +313,6 @@ public class MarkupManager {
             // Send FromUiMessage and notify listeners
             if (Engine.getInstance().getUiServer() != null) {
                 Engine.getInstance().getUiServer().UIMessage(autonomyDecision);
-                for (MarkupManagerListener listener : listeners) {
-                    listener.autonomyTriggered(toUiMessage, autonomyDecision);
-                }
             } else {
                 LOGGER.warning("NULL UiServer!");
             }
@@ -335,17 +320,19 @@ public class MarkupManager {
             autonomyTimer = new Timer(trigger.timeout.timeout * 1000, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    LOGGER.fine("Activating autonomy for message: " + toUiMessage + " with UUID: " + toUiMessage.getRelevantOutputEventId());
                     // Send FromUiMessage and notify listeners
                     if (Engine.getInstance().getUiServer() != null) {
                         Engine.getInstance().getUiServer().UIMessage(autonomyDecision);
-                        for (MarkupManagerListener listener : listeners) {
-                            listener.autonomyTriggered(toUiMessage, autonomyDecision);
-                        }
+                        Engine.getInstance().getUiClient().toUiMessageHandled(toUiMessage.getMessageId());
                     } else {
                         LOGGER.warning("NULL UiServer!");
                     }
                 }
             });
+            LOGGER.fine("Starting autonomy timer for: " + (trigger.timeout.timeout * 1000) + " for message: " + toUiMessage + " with UUID: " + toUiMessage.getRelevantOutputEventId());
+            autonomyTimer.setRepeats(false);
+            autonomyTimer.start();
         }
     }
 

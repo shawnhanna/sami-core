@@ -13,9 +13,8 @@ public class PathSelectedMessage extends FromUiMessage {
 
     private Hashtable<ProxyInt, Path> proxyPaths;
 
-    public PathSelectedMessage(UUID relevantOutputEventId, UUID missionId, Hashtable<ProxyInt, Path> path) {
-        this.relevantOutputEventId = relevantOutputEventId;
-        this.missionId = missionId;
+    public PathSelectedMessage(UUID relevantToUiMessageId, UUID relevantOutputEventId, UUID missionId, Hashtable<ProxyInt, Path> path) {
+        super(relevantToUiMessageId, relevantOutputEventId, missionId);
         this.proxyPaths = path;
     }
 

@@ -13,13 +13,16 @@ public abstract class CreationDoneMessage extends FromUiMessage {
 
     protected Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues;
 
-    public CreationDoneMessage(UUID uuid, UUID missionUuid, Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues) {
-        this.relevantOutputEventId = uuid;
-        this.missionId = missionUuid;
+    public CreationDoneMessage(UUID relevantToUiMessageId, UUID relevantOutputEventId, UUID missionId, Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues) {
+        super(relevantToUiMessageId, relevantOutputEventId, missionId);
         this.eventSpecToFieldValues = eventSpecToFieldValues;
     }
 
     public Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> getEventSpecToFieldValues() {
         return eventSpecToFieldValues;
+    }
+    
+    public String toString() {
+        return "CreationDoneMessage, eventSpecToFieldValues: " + eventSpecToFieldValues;
     }
 }

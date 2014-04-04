@@ -155,6 +155,8 @@ public class MissionPlanSpecification implements java.io.Serializable {
         inTokenSpecList.add(matchGenericTokenSpec);
         TokenSpecification matchNoneTokenSpec = new TokenSpecification("No Req", TokenType.MatchNoReq, null);
         inTokenSpecList.add(matchNoneTokenSpec);
+        TokenSpecification hasProxyTokenSpec = new TokenSpecification("Has Proxy", TokenType.HasProxy, null);
+        inTokenSpecList.add(hasProxyTokenSpec);
         TokenSpecification matchRelProxyTokenSpec = new TokenSpecification("Match RP", TokenType.MatchRelevantProxy, null);
         inTokenSpecList.add(matchRelProxyTokenSpec);
         // Outgoing

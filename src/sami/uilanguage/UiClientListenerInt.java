@@ -1,5 +1,6 @@
 package sami.uilanguage;
 
+import java.util.UUID;
 import sami.uilanguage.toui.ToUiMessage;
 
 /**
@@ -8,7 +9,9 @@ import sami.uilanguage.toui.ToUiMessage;
  */
 public interface UiClientListenerInt {
 
-    public void ToUiMessage(ToUiMessage m);
+    public void toUiMessageReceived(ToUiMessage m);
+    
+    public void toUiMessageHandled(UUID toUiMessageId);
 
     public UiClientInt getUiClient();
 

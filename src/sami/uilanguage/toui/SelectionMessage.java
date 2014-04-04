@@ -1,6 +1,7 @@
 package sami.uilanguage.toui;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Rename from Decision to Selection?
@@ -9,10 +10,22 @@ import java.util.List;
  */
 public abstract class SelectionMessage extends ToUiMessage {
 
-    protected boolean allowMultiple;
-    protected boolean allowRejection;
-    protected boolean showOptionsIndividually;
+    final protected boolean allowMultiple;
+    final protected boolean allowRejection;
+    final protected boolean showOptionsIndividually;
     protected List<?> optionsList;
+
+    public SelectionMessage(UUID relevantOutputEventId, UUID missionId, int priority, boolean allowMultiple, boolean allowRejection, boolean showOptionsIndividually) {
+        super(relevantOutputEventId, missionId, priority);
+        this.allowMultiple = allowMultiple;
+        this.allowRejection = allowRejection;
+        this.showOptionsIndividually = showOptionsIndividually;
+    }
+
+    public SelectionMessage(UUID relevantOutputEventId, UUID missionId, int priority, boolean allowMultiple, boolean allowRejection, boolean showOptionsIndividually, List<?> optionsList) {
+        this(relevantOutputEventId, missionId, priority, allowMultiple, allowRejection, showOptionsIndividually);
+        this.optionsList = optionsList;
+    }
 
     public boolean getAllowMultiple() {
         return allowMultiple;
@@ -28,5 +41,9 @@ public abstract class SelectionMessage extends ToUiMessage {
 
     public List<?> getOptionsList() {
         return optionsList;
+    }
+
+    public String toString() {
+        return "SelectionMessage, allowMultiple: " + allowMultiple + ", allowRejection: " + allowRejection + ", optionsList: " + optionsList;
     }
 }

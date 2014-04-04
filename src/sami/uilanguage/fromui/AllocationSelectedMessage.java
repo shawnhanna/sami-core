@@ -11,9 +11,8 @@ public class AllocationSelectedMessage extends FromUiMessage {
 
     private ResourceAllocation allocation;
 
-    public AllocationSelectedMessage(UUID relevantOutputEventId, UUID missionId, ResourceAllocation allocation) {
-        this.relevantOutputEventId = relevantOutputEventId;
-        this.missionId = missionId;
+    public AllocationSelectedMessage(UUID relevantToUiMessageId, UUID relevantOutputEventId, UUID missionId, ResourceAllocation allocation) {
+        super(relevantToUiMessageId, relevantOutputEventId, missionId);
         this.allocation = allocation;
     }
 

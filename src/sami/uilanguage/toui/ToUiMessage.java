@@ -10,18 +10,40 @@ import sami.markup.Markup;
  * @author pscerri
  */
 public abstract class ToUiMessage {
-    
-    protected int priority;
-    protected ArrayList<Markup> markups = new ArrayList<Markup>();
-    protected UUID relevantOutputEventId;
-    protected UUID missionId;
 
-    public UUID getMissionId() {
-        return missionId;
+    final protected int priority;
+    final protected long creationTime;    // epoch time
+    final protected ArrayList<Markup> markups = new ArrayList<Markup>();
+    final protected UUID messageId;
+    final protected UUID relevantOutputEventId;
+    final protected UUID missionId;
+
+    public ToUiMessage(UUID relevantOutputEventId, UUID missionId, int priority) {
+        this.relevantOutputEventId = relevantOutputEventId;
+        this.missionId = missionId;
+        this.priority = priority;
+        creationTime = System.currentTimeMillis();
+        messageId = UUID.randomUUID();
     }
 
-    public void setMissionId(UUID missionId) {
-        this.missionId = missionId;
+//    public ToUiMessage(UUID messageId, UUID relevantOutputEventId, UUID missionId, long creationTime, int priority) {
+//        this.messageId = messageId;
+//        this.relevantOutputEventId = relevantOutputEventId;
+//        this.missionId = missionId;
+//        this.creationTime = creationTime;
+//        this.priority = priority;
+//    }
+
+    public UUID getMessageId() {
+        return messageId;
+    }
+
+    public UUID getRelevantOutputEventId() {
+        return relevantOutputEventId;
+    }
+    
+    public UUID getMissionId() {
+        return missionId;
     }
 
     public void addMarkup(Markup markup) {
@@ -32,23 +54,11 @@ public abstract class ToUiMessage {
         return markups;
     }
 
-    public void setMarkups(ArrayList<Markup> markups) {
-        this.markups = markups;
-    }
-
     public int getPriority() {
         return priority;
     }
 
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
-    public UUID getRelevantOutputEventId() {
-        return relevantOutputEventId;
-    }
-
-    public void setRelevantOutputEventId(UUID relevantOutputEventId) {
-        this.relevantOutputEventId = relevantOutputEventId;
+    public long getCreationTime() {
+        return creationTime;
     }
 }

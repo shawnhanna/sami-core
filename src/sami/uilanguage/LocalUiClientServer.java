@@ -1,6 +1,7 @@
 package sami.uilanguage;
 
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sami.uilanguage.fromui.FromUiMessage;
@@ -29,10 +30,18 @@ public class LocalUiClientServer implements UiClientInt, UiServerInt {
     }
 
     @Override
-    public void UIMessage(ToUiMessage m) {
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Message to UI: " + m);
+    public void toUiMessageReceived(ToUiMessage toUiMessage) {
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "toUiMessageReceived: " + toUiMessage);
         for (UiClientListenerInt clientListener : cls) {
-            clientListener.ToUiMessage(m);
+            clientListener.toUiMessageReceived(toUiMessage);
+        }
+    }
+
+    @Override
+    public void toUiMessageHandled(UUID toUiMessageId) {
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "toUiMessageHandled: " + toUiMessageId);
+        for (UiClientListenerInt clientListener : cls) {
+            clientListener.toUiMessageHandled(toUiMessageId);
         }
     }
 

@@ -1,5 +1,6 @@
 package sami.uilanguage.toui;
 
+import java.text.SimpleDateFormat;
 import sami.mission.MissionPlanSpecification;
 import sami.mission.Place;
 import sami.proxy.ProxyInt;
@@ -39,9 +40,7 @@ public class InformationMessage extends ToUiMessage implements java.io.Serializa
     private ArrayList<Importance> importances = null;
 
     public InformationMessage(UUID relevantOutputEventId, UUID missionId, int priority, String message) {
-        this.relevantOutputEventId = relevantOutputEventId;
-        this.missionId = missionId;
-        this.priority = priority;
+        super(relevantOutputEventId, missionId, priority);
         this.message = message;
     }
 
@@ -52,7 +51,7 @@ public class InformationMessage extends ToUiMessage implements java.io.Serializa
     public String toString() {
         return "<html>"
                 + "<font color=rgb(188,6,6)>" + Priority.getPriority(priority).toString() + "</font>&nbsp;&nbsp;&nbsp;"
-                + "<html><font color=rgb(0,0,0)>" + message + "</font>"
+                + "<font color=rgb(0,0,0)>" + message + "</font>"
                 + "</html>";
     }
 }

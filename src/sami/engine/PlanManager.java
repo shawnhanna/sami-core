@@ -365,6 +365,21 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                                 matchedTokens.clear();
                             }
                             break;
+                        case HasProxy:
+                            boolean foundProxy = false;
+                            for (Token placeToken : placeTokens) {
+                                LOGGER.log(Level.FINE, "\t\t\t !!!Checking if token " + placeToken + " matches any unmatched relevant proxies");
+                                if (placeToken.getProxy() != null) {
+                                    LOGGER.log(Level.FINE, "\t\t\t !!!Token " + placeToken + " with proxy " + placeToken.getProxy() + ", satifies HasProxy label");
+                                    foundProxy = true;
+                                    break;
+                                }
+                            }
+                            if(!foundProxy) {
+                                    LOGGER.log(Level.FINE, "\t\t\t !!!Failed to find proxy for has proxy token");
+                            }
+                            failure = !foundProxy;
+                            break;
                         case MatchRelevantProxy:
                             for (InputEvent ie : transition.getInputEvents()) {
                                 if (ie.getGeneratorEvent() == null) {
@@ -1090,7 +1105,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 match = false;
                 for (Place inPlace : inPlaces) {
                     for (OutputEvent oe : inPlace.getOutputEvents()) {
-                        if (oe.getId() == generatedEvent.getRelevantOutputEventId()) {
+                        if (oe.getId().equals(generatedEvent.getRelevantOutputEventId())) {
                             LOGGER.log(Level.FINE, "\t\tMatching success on relevant OE UUID: " + oe.getId());
                             match = true;
                         }
@@ -1298,15 +1313,15 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         // 1 - Check if there is an attached allocation to assign
         if (generatorEvent.getAllocation() != null) {
             Map<ITask, AbstractAsset> allocation = generatorEvent.getAllocation().getAllocation();
-            LOGGER.log(Level.INFO, "\tInputEvent " + updatedParamEvent + " tied to " + transition + " occurred with an attach allocation: " + generatorEvent.getAllocation().toString());
+            LOGGER.log(Level.FINE, "\tInputEvent " + updatedParamEvent + " tied to " + transition + " occurred with an attach allocation: " + generatorEvent.getAllocation().toString());
             for (ITask task : allocation.keySet()) {
                 Token token = Engine.getInstance().getToken((Task) task);
                 if (token != null) {
-                    LOGGER.log(Level.INFO, "\t\tFound token " + token + " for task " + task);
+                    LOGGER.log(Level.FINE, "\t\tFound token " + token + " for task " + task);
                     AbstractAsset asset = allocation.get(task);
                     ProxyInt proxy = Engine.getInstance().getProxyServer().getProxy(asset);
                     if (proxy != null) {
-                        LOGGER.log(Level.INFO, "\t\tFound proxy " + proxy + " for asset " + asset);
+                        LOGGER.log(Level.FINE, "\t\tFound proxy " + proxy + " for asset " + asset);
                         token.setProxy(proxy);
                     } else {
                         LOGGER.log(Level.SEVERE, "\t\tCould not find proxy for asset " + asset);
@@ -1320,7 +1335,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         // 2a - Assign any missing instance params that were missing and have now been received
         if (generatorEvent instanceof MissingParamsReceived) {
             MissingParamsReceived paramsReceived = (MissingParamsReceived) generatorEvent;
-            LOGGER.log(Level.INFO, "Writing parameters from MissingParamsReceived: " + paramsReceived);
+            LOGGER.log(Level.FINE, "Writing parameters from MissingParamsReceived: " + paramsReceived);
             Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues = paramsReceived.getEventSpecToFieldValues();
             for (ReflectedEventSpecification eventSpec : eventSpecToFieldValues.keySet()) {
                 Hashtable<Field, Object> fieldsToValues = eventSpecToFieldValues.get(eventSpec);
@@ -1349,7 +1364,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         // The variables are on the InputEvent, because that has come from the spec, but the values are in the generator event
         HashMap<String, String> variables = updatedParamEvent.getVariables();
         if (variables != null) {
-            LOGGER.log(Level.INFO, "\tInputEvent " + updatedParamEvent + " tied to " + transition + " occurred with variables: " + variables);
+            LOGGER.log(Level.FINE, "\tInputEvent " + updatedParamEvent + " tied to " + transition + " occurred with variables: " + variables);
 
             for (String fieldName : variables.keySet()) {
                 LOGGER.log(Level.FINE, "\toccurred looking at variable " + fieldName);

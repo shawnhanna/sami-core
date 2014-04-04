@@ -13,7 +13,11 @@ public class ParamsSelectedMessage extends CreationDoneMessage {
 
     protected Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues;
 
-    public ParamsSelectedMessage(UUID uuid, UUID missionUuid, Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues) {
-        super(uuid, missionUuid, eventSpecToFieldValues);
+    public ParamsSelectedMessage(UUID relevantToUiMessageId, UUID relevantOutputEventId, UUID missionId, Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> eventSpecToFieldValues) {
+        super(relevantToUiMessageId, relevantOutputEventId, missionId, eventSpecToFieldValues);
+    }
+    
+    public String toString() {
+        return "ParamsSelectedMessage, eventSpecToFieldValues: " + eventSpecToFieldValues;
     }
 }

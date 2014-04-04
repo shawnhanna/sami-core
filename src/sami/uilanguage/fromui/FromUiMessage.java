@@ -9,22 +9,21 @@ import java.util.UUID;
  */
 public abstract class FromUiMessage {
 
-    protected UUID relevantOutputEventId = null;
-    protected UUID missionId = null;
+    final protected UUID relevantToUiMessageId;
+    final protected UUID relevantOutputEventId;
+    final protected UUID missionId;
+
+    public FromUiMessage(UUID relevantToUiMessageId, UUID relevantOutputEventId, UUID missionId) {
+        this.relevantToUiMessageId = relevantToUiMessageId;
+        this.relevantOutputEventId = relevantOutputEventId;
+        this.missionId = missionId;
+    }
 
     public UUID getMissionId() {
         return missionId;
     }
 
-    public void setMissionId(UUID missionId) {
-        this.missionId = missionId;
-    }
-
     public UUID getRelevantOutputEventId() {
         return relevantOutputEventId;
-    }
-
-    public void setRelevantOutputEventId(UUID relevantOutputEventId) {
-        this.relevantOutputEventId = relevantOutputEventId;
     }
 }
