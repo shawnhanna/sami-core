@@ -1,6 +1,14 @@
 package sami.service.pathplanning;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sami.environment.Continuous3DEnvironment;
@@ -47,7 +55,6 @@ public class PlanningService {
         final PlanningServiceListenerInt l = l2 == null ? listener : l2;
 
         // @todo Options might actually call different planners
-
         (new Thread() {
             public void run() {
 
@@ -59,7 +66,6 @@ public class PlanningService {
                     try {
 
                         // RRT rrt = new RRT(request.getEm(), (SimpleVehicle) request.getVeh(), (DestinationObjective) request.getOf(), l, request.getNoOptions());
-
                         int noNodes = 50;
                         double roadLength = 0.2;
                         PRM prm = new PRM(request.getEm(),
@@ -101,32 +107,77 @@ public class PlanningService {
                 }
 
                 if (request.getOf() != null && request.getOf() instanceof DestinationUtmObjective) {
-                    DestinationUtmObjective objective = (DestinationUtmObjective) request.getOf();
-
-                    ArrayList<Location> wps = new ArrayList<Location>();
-                    // Add a slight offset to the current location, otherwise
-                    //  the proxy will spin in place indefinitely
-                    Location start = objective.getStartLocation();
-                    Location startOffset = new Location(new UTMCoordinate(start.getCoordinate().getNorthing() + 1, start.getCoordinate().getEasting(), start.getCoordinate().getZone()), start.getAltitude());
-                    wps.add(startOffset);
-                    wps.add(objective.getEndLocation());
-                    PathUtm path = new PathUtm(wps);
-
-                    ArrayList<PathUtm> altPaths = new ArrayList<PathUtm>();
-                    for (int i = 1; i < request.getNoOptions(); i++) {
-                        ArrayList<Location> altWps = new ArrayList<Location>();
+                    PrintWriter out = null;
+                    try {
+                        DestinationUtmObjective objective = (DestinationUtmObjective) request.getOf();
+                        ArrayList<Location> wps = new ArrayList<Location>();
                         // Add a slight offset to the current location, otherwise
                         //  the proxy will spin in place indefinitely
-                        start = objective.getStartLocation();
-                        startOffset = new Location(new UTMCoordinate(start.getCoordinate().getNorthing() + 1, start.getCoordinate().getEasting(), start.getCoordinate().getZone()), start.getAltitude());
-                        altWps.add(startOffset);
-                        altWps.add(objective.getEndLocation());
-                        altPaths.add(new PathUtm(altWps));
-                    }
-                    PlanningServiceResponse response = new PlanningServiceResponse(path, altPaths);
+                        Location start = objective.getStartLocation();
+                        Location startOffset = new Location(new UTMCoordinate(start.getCoordinate().getNorthing() + 1, start.getCoordinate().getEasting(), start.getCoordinate().getZone()), start.getAltitude());
+//                        wps.add(startOffset);
 
-                    LOGGER.log(Level.INFO, "Responses: " + (response.getAlternatives() == null ? 1 : response.getAlternatives().size() + 1), this);
-                    l.responseRecieved(response);
+                        String serverAddress = "localhost";
+                        Socket s = new Socket(serverAddress, 9090);
+                        out = new PrintWriter(s.getOutputStream(), true);
+                        BufferedReader input = new BufferedReader(new InputStreamReader(
+                                s.getInputStream()));
+                        out.println("get path");
+                        ArrayList<Double> latitude = new ArrayList<Double>();
+                        ArrayList<Double> longitude = new ArrayList<Double>();
+                        try {
+                            while (true) {
+                                String answer = input.readLine();
+                                if (answer.equals("points end")) {
+                                    break;
+                                } else {
+                                    String[] array = answer.split(" ");
+                                    latitude.add(Double.parseDouble(array[0]));
+                                    longitude.add(Double.parseDouble(array[1]));
+                                    Location newPose = new Location(new UTMCoordinate(latitude.get(latitude.size()-1), longitude.get(longitude.size()-1)), start.getAltitude());
+                                    wps.add(newPose);
+                                    LOGGER.log(Level.INFO, "lat_long: " + latitude.get(latitude.size()-1) + " " + longitude.get(longitude.size()-1));
+                                }
+                            }
+                            System.out.println(latitude);
+                            System.out.println(longitude);
+                        } catch (IOException ex) {
+                            LOGGER.log(Level.SEVERE, "IO EXCEPTION");
+                            Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
+                        } finally {
+                            LOGGER.log(Level.INFO, "closing connection to socket");
+                            if (s != null) {
+                                try {
+                                    out.close();
+                                    input.close();
+                                    s.close();
+                                } catch (IOException ex) {
+                                    Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
+                        }
+
+//                    wps.add(objective.getEndLocation());
+                        PathUtm path = new PathUtm(wps);
+                        ArrayList<PathUtm> altPaths = new ArrayList<PathUtm>();
+                        for (int i = 1; i < request.getNoOptions(); i++) {
+                            ArrayList<Location> altWps = new ArrayList<Location>();
+                            // Add a slight offset to the current location, otherwise
+                            //  the proxy will spin in place indefinitely
+                            start = objective.getStartLocation();
+                            startOffset = new Location(new UTMCoordinate(start.getCoordinate().getNorthing() + 1, start.getCoordinate().getEasting(), start.getCoordinate().getZone()), start.getAltitude());
+                            altWps.add(startOffset);
+                            altWps.add(objective.getEndLocation());
+                            altPaths.add(new PathUtm(altWps));
+                        }
+                        PlanningServiceResponse response = new PlanningServiceResponse(path, altPaths);
+                        LOGGER.log(Level.INFO, "Responses: " + (response.getAlternatives() == null ? 1 : response.getAlternatives().size() + 1), this);
+                        l.responseRecieved(response);
+                    } catch (IOException ex) {
+                        Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
+                    } finally {
+                        out.close();
+                    }
                 }
             }
         }).start();
