@@ -29,3 +29,5 @@ Thumbs.db
 # Other files #
 ###############
 /fManager.ini
+/nbproject-linux64/nbproject/private/
+/nbproject-linux64/build/
