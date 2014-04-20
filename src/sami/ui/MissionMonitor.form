@@ -7,6 +7,7 @@
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
+    <SyntheticProperty name="generateCenter" type="boolean" value="false"/>
   </SyntheticProperties>
   <AuxValues>
     <AuxValue name="FormSettings_autoResourcing" type="java.lang.Integer" value="0"/>
@@ -28,7 +29,8 @@
               <Group type="103" groupAlignment="0" max="-2" attributes="0">
                   <Component id="planScrollP" alignment="0" pref="175" max="32767" attributes="0"/>
                   <Component id="runB" alignment="0" max="32767" attributes="0"/>
-                  <Component id="loadB" alignment="0" max="32767" attributes="0"/>
+                  <Component id="loadDrmB" alignment="0" max="32767" attributes="0"/>
+                  <Component id="loadEpfB" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="missionsScrollP" max="32767" attributes="0"/>
@@ -47,7 +49,9 @@
                       <EmptySpace min="-2" pref="5" max="-2" attributes="0"/>
                       <Component id="planScrollP" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="loadB" min="-2" max="-2" attributes="0"/>
+                      <Component id="loadDrmB" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="loadEpfB" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -56,12 +60,12 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="javax.swing.JButton" name="loadB">
+    <Component class="javax.swing.JButton" name="loadDrmB">
       <Properties>
         <Property name="text" type="java.lang.String" value="Load Project"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="loadBActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="loadDrmBActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="runB">
@@ -138,5 +142,13 @@
         </Container>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JButton" name="loadEpfB">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Load Environment"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="loadEpfBActionPerformed"/>
+      </Events>
+    </Component>
   </SubComponents>
 </Form>

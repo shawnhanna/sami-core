@@ -72,7 +72,7 @@ public class DomainConfigManager {
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file));
             dc = (DomainConfig) ois.readObject();
             dc.reload();
-            LOGGER.log(Level.INFO, dc.toVerboseString());
+            LOGGER.info(dc.toVerboseString());
 
             // Update Preferences
             try {

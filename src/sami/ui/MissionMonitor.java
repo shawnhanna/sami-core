@@ -27,6 +27,7 @@ import sami.config.DomainConfigManager;
 import sami.engine.Engine;
 import sami.engine.PlanManager;
 import sami.engine.PlanManagerListenerInt;
+import sami.environment.EnvironmentProperties;
 import sami.mission.MissionPlanSpecification;
 import sami.mission.Place;
 import sami.mission.ProjectSpecification;
@@ -43,6 +44,8 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
     private static final Logger LOGGER = Logger.getLogger(MissionMonitor.class.getName());
     public static final String LAST_DRM_FILE = "LAST_DRM_NAME";
     public static final String LAST_DRM_FOLDER = "LAST_DRM_FOLDER";
+    public static final String LAST_EPF_FILE = "LAST_EPF_NAME";
+    public static final String LAST_EPF_FOLDER = "LAST_EPF_FOLDER";
     DefaultListModel missionListModel = new DefaultListModel();
     ArrayList<Object> uiElements = new ArrayList<Object>();
     ArrayList<UiFrame> uiFrames = new ArrayList<UiFrame>();
@@ -68,7 +71,6 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
 
 //        InformationGenerationFrame igf = new InformationGenerationFrame();
 //        igf.setVisible(true);
-
         LocalUiClientServer clientServer = new LocalUiClientServer();
         Engine.getInstance().setUiClient(clientServer);
         Engine.getInstance().setUiServer(clientServer);
@@ -99,12 +101,10 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
         }
 
 //        new StateManagerAccessor();
-
         missionViewersP.setLayout(new BoxLayout(missionViewersP, BoxLayout.Y_AXIS));
         planL.setModel(missionListModel);
 
 //        (new AgentPlatform()).showMonitor();
-
         FrameManager.restoreLayout();
 
         Engine.getInstance().addListener(this);
@@ -114,10 +114,18 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
         try {
             String lastDrmPath = p.get(LAST_DRM_FILE, null);
             if (lastDrmPath != null) {
-                load(new File(lastDrmPath));
+                loadDrm(new File(lastDrmPath));
             }
         } catch (AccessControlException e) {
-            LOGGER.severe("Failed to save preferences");
+            LOGGER.severe("Failed to load last used DRM");
+        }
+        try {
+            String lastEpfPath = p.get(LAST_EPF_FILE, null);
+            if (lastEpfPath != null) {
+                loadEpf(new File(lastEpfPath));
+            }
+        } catch (AccessControlException e) {
+            LOGGER.severe("Failed to load last used EPF");
         }
     }
 
@@ -172,21 +180,22 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        loadB = new javax.swing.JButton();
+        loadDrmB = new javax.swing.JButton();
         runB = new javax.swing.JButton();
         planScrollP = new javax.swing.JScrollPane();
         planL = new javax.swing.JList();
         missionsScrollP = new javax.swing.JScrollPane();
         placeholderP = new javax.swing.JPanel();
         missionViewersP = new javax.swing.JPanel();
+        loadEpfB = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Mission Monitor");
 
-        loadB.setText("Load Project");
-        loadB.addActionListener(new java.awt.event.ActionListener() {
+        loadDrmB.setText("Load Project");
+        loadDrmB.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadBActionPerformed(evt);
+                loadDrmBActionPerformed(evt);
             }
         });
 
@@ -235,6 +244,13 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
 
         missionsScrollP.setViewportView(placeholderP);
 
+        loadEpfB.setText("Load Environment");
+        loadEpfB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                loadEpfBActionPerformed(evt);
+            }
+        });
+
         org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -244,7 +260,8 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
                 .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING, false)
                     .add(planScrollP, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 175, Short.MAX_VALUE)
                     .add(runB, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .add(loadB, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .add(loadDrmB, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .add(loadEpfB, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
                 .add(missionsScrollP)
                 .addContainerGap())
@@ -260,15 +277,16 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
                         .add(5, 5, 5)
                         .add(planScrollP)
                         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
-                        .add(loadB)))
+                        .add(loadDrmB)
+                        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
+                        .add(loadEpfB)))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void loadBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadBActionPerformed
-
+    private void loadDrmBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadDrmBActionPerformed
         File specLocation = null;
 //        File specLocation = new File("C:\\Users\\nbb\\Documents\\pickup.drm");
 
@@ -281,10 +299,10 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
                 specLocation = chooser.getSelectedFile();
             }
         }
-        load(specLocation);
+        loadDrm(specLocation);
     }
 
-    public void load(File specLocation) {
+    public void loadDrm(File specLocation) {
         if (specLocation == null) {
             return;
         }
@@ -293,9 +311,10 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
             ObjectInputStream ois = new ObjectInputStream(new FileInputStream(specLocation));
             projectSpec = (ProjectSpecification) ois.readObject();
 
-            LOGGER.log(Level.INFO, "Read");
+            LOGGER.info("Reading project specification at [" + specLocation + "]");
 
             if (projectSpec == null) {
+                LOGGER.log(Level.WARNING, "Failed to load project specification at [" + specLocation + "]");
                 JOptionPane.showMessageDialog(null, "Specification failed load");
             } else {
                 for (Object m : projectSpec.getMissionPlans()) {
@@ -320,7 +339,7 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
         } catch (IOException ex) {
             LOGGER.severe("IO Exception on DRM load");
         }
-    }//GEN-LAST:event_loadBActionPerformed
+    }//GEN-LAST:event_loadDrmBActionPerformed
 
     private void runBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_runBActionPerformed
         MissionPlanSpecification mSpec = (MissionPlanSpecification) planL.getSelectedValue();
@@ -328,6 +347,56 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
             PlanManager pm = Engine.getInstance().spawnMission(mSpec, null);
         }
     }//GEN-LAST:event_runBActionPerformed
+
+    private void loadEpfBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadEpfBActionPerformed
+        File environmentLocation = null;
+
+        if (environmentLocation == null) {
+            JFileChooser chooser = new JFileChooser();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("EPF specification files", "epf");
+            chooser.setFileFilter(filter);
+            int ret = chooser.showOpenDialog(null);
+            if (ret == JFileChooser.APPROVE_OPTION) {
+                environmentLocation = chooser.getSelectedFile();
+            }
+        }
+        loadEpf(environmentLocation);
+    }//GEN-LAST:event_loadEpfBActionPerformed
+
+    public void loadEpf(File epfLocation) {
+        if (epfLocation == null) {
+            return;
+        }
+        EnvironmentProperties environmentProperties = null;
+        try {
+            ObjectInputStream ois = new ObjectInputStream(new FileInputStream(epfLocation));
+            environmentProperties = (EnvironmentProperties) ois.readObject();
+
+            LOGGER.info("Reading environment properties at [" + epfLocation + "]");
+
+            if (environmentProperties == null) {
+                LOGGER.log(Level.WARNING, "Failed to load environment properties at [" + epfLocation + "]");
+                JOptionPane.showMessageDialog(null, "Environment properties failed load");
+            } else {
+                Preferences p = Preferences.userRoot();
+                try {
+                    p.put(LAST_EPF_FILE, epfLocation.getAbsolutePath());
+                    p.put(LAST_EPF_FOLDER, epfLocation.getParent());
+                } catch (AccessControlException e) {
+                    LOGGER.severe("Failed to save preferences");
+                }
+
+                Engine.getInstance().setEnvironmentProperties(environmentProperties);
+            }
+
+        } catch (ClassNotFoundException ex) {
+            LOGGER.severe("Class not found exception in EPF load");
+        } catch (FileNotFoundException ex) {
+            LOGGER.severe("EPF File not found");
+        } catch (IOException ex) {
+            LOGGER.severe("IO Exception on EPF load");
+        }
+    }
 
     /**
      * @param args the command line arguments
@@ -340,7 +409,8 @@ public class MissionMonitor extends javax.swing.JFrame implements PlanManagerLis
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton loadB;
+    private javax.swing.JButton loadDrmB;
+    private javax.swing.JButton loadEpfB;
     private javax.swing.JPanel missionViewersP;
     private javax.swing.JScrollPane missionsScrollP;
     private javax.swing.JPanel placeholderP;

@@ -311,8 +311,10 @@ public class MarkupManager {
 
         if (trigger.trigger == MixedInitiativeTrigger.Trigger.IMMEDIATELY) {
             // Send FromUiMessage and notify listeners
+            LOGGER.fine("Immediately activating autonomy for message: " + toUiMessage + " with UUID: " + toUiMessage.getRelevantOutputEventId());
             if (Engine.getInstance().getUiServer() != null) {
                 Engine.getInstance().getUiServer().UIMessage(autonomyDecision);
+                Engine.getInstance().getUiClient().toUiMessageHandled(toUiMessage.getMessageId());
             } else {
                 LOGGER.warning("NULL UiServer!");
             }
@@ -320,7 +322,7 @@ public class MarkupManager {
             autonomyTimer = new Timer(trigger.timeout.timeout * 1000, new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    LOGGER.fine("Activating autonomy for message: " + toUiMessage + " with UUID: " + toUiMessage.getRelevantOutputEventId());
+                    LOGGER.fine("Timer activating autonomy for message: " + toUiMessage + " with UUID: " + toUiMessage.getRelevantOutputEventId());
                     // Send FromUiMessage and notify listeners
                     if (Engine.getInstance().getUiServer() != null) {
                         Engine.getInstance().getUiServer().UIMessage(autonomyDecision);
