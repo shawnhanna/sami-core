@@ -49,9 +49,6 @@ public class InformationMessage extends ToUiMessage implements java.io.Serializa
     }
 
     public String toString() {
-        return "<html>"
-                + "<font color=rgb(188,6,6)>" + Priority.getPriority(priority).toString() + "</font>&nbsp;&nbsp;&nbsp;"
-                + "<font color=rgb(0,0,0)>" + message + "</font>"
-                + "</html>";
+        return "InformationMessage [" + message + "]";
     }
 }

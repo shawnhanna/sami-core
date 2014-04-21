@@ -23,4 +23,8 @@ public class SendAbortMission extends OutputEvent {
         this.missionId = missionId;
         id = UUID.randomUUID();
     }
+
+    public String toString() {
+        return "SendAbortMission [" + missionId + "]";
+    }
 }

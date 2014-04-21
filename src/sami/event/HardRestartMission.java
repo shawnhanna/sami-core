@@ -18,4 +18,8 @@ public class HardRestartMission extends OutputEvent {
     public HardRestartMission() {
         id = UUID.randomUUID();
     }
+
+    public String toString() {
+        return "HardRestartMission [" + missionId + "]";
+    }
 }

@@ -24,6 +24,6 @@ public class YesNoSelectedMessage extends FromUiMessage {
     }
     
     public String toString() {
-        return "YesNoSelectedMessage, yes: " + yes;
+        return "YesNoSelectedMessage [" + yes + "]";
     }
 }

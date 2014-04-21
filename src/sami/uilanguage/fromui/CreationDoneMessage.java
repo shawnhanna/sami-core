@@ -21,8 +21,8 @@ public abstract class CreationDoneMessage extends FromUiMessage {
     public Hashtable<ReflectedEventSpecification, Hashtable<Field, Object>> getEventSpecToFieldValues() {
         return eventSpecToFieldValues;
     }
-    
+
     public String toString() {
-        return "CreationDoneMessage, eventSpecToFieldValues: " + eventSpecToFieldValues;
+        return "CreationDoneMessage [" + eventSpecToFieldValues + "]";
     }
 }

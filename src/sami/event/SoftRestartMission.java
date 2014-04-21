@@ -23,4 +23,8 @@ public class SoftRestartMission extends OutputEvent {
         this.missionId = missionId;
         id = UUID.randomUUID();
     }
+
+    public String toString() {
+        return "SoftRestartMission [" + missionId + "]";
+    }
 }

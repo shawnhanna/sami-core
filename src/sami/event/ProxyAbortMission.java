@@ -23,4 +23,8 @@ public class ProxyAbortMission extends OutputEvent {
         this.missionId = missionId;
         id = UUID.randomUUID();
     }
+
+    public String toString() {
+        return "ProxyAbortMission [" + missionId + "]";
+    }
 }

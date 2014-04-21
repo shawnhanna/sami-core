@@ -51,7 +51,7 @@ public class PlanningService {
         (new Thread() {
             public void run() {
 
-                LOGGER.log(Level.INFO, "Got request for " + request.getNoOptions() + " paths", this);
+                LOGGER.log(Level.FINE, "Got request for " + request.getNoOptions() + " paths", this);
 
                 if (request.getEm() instanceof Continuous3DEnvironment) {
 
@@ -125,7 +125,7 @@ public class PlanningService {
                     }
                     PlanningServiceResponse response = new PlanningServiceResponse(path, altPaths);
 
-                    LOGGER.log(Level.INFO, "Responses: " + (response.getAlternatives() == null ? 1 : response.getAlternatives().size() + 1), this);
+                    LOGGER.log(Level.FINE, "Responses: " + (response.getAlternatives() == null ? 1 : response.getAlternatives().size() + 1), this);
                     l.responseRecieved(response);
                 }
             }

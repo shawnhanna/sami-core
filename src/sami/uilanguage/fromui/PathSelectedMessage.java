@@ -30,4 +30,8 @@ public class PathSelectedMessage extends FromUiMessage {
     public UUID getRelevantOutputEventId() {
         return relevantOutputEventId;
     }
+
+    public String toString() {
+        return "PathSelectedMessage [" + proxyPaths + "]";
+    }
 }

@@ -24,4 +24,8 @@ public class MissingParamsRequest extends OutputEvent {
     public Hashtable<ReflectedEventSpecification, Hashtable<Field, String>> getFieldDescriptions() {
         return eventSpecToFieldDescriptions;
     }
+
+    public String toString() {
+        return "MissingParamsRequest [" + eventSpecToFieldDescriptions + "]";
+    }
 }

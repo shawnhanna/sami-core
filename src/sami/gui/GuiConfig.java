@@ -54,6 +54,4 @@ public class GuiConfig {
     public static final String TOKEN_REQ_TEXT_COLOR = "rgb(188,6,6)";
     public static final int MAX_STRING_LENGTH = 100;
     public static final Color INVIS_EDGE_COLOR = null;
-    // Time to wait at beginning of transition execution for visual debugging
-    public static final int TRANSITION_DELAY = 500;
 }

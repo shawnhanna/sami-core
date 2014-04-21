@@ -137,7 +137,7 @@ public class ReflectedEventSpecification implements java.io.Serializable {
             Event event = (Event) c.newInstance();
             LOGGER.log(Level.FINE, "Event " + event.getClass().getSimpleName() + ", event.getFillAtPlace() = " + event.getFillAtPlace());
             if (event.getFillAtPlace() && !atPlace) {
-                LOGGER.log(Level.INFO, "Tried to check for missing params for event " + event.getClass().getSimpleName() + " at plan loading, but params are to be filled at place, returning false");
+                LOGGER.log(Level.FINE, "Tried to check for missing params for event " + event.getClass().getSimpleName() + " at plan loading, but params are to be filled at place, returning false");
                 return false;
             } else {
                 LOGGER.log(Level.FINE, "Checking for missing params for event " + event.getClass().getSimpleName());
@@ -167,7 +167,7 @@ public class ReflectedEventSpecification implements java.io.Serializable {
             Event event = (Event) c.newInstance();
             LOGGER.log(Level.FINE, "Event " + event.getClass().getSimpleName() + ", event.getFillAtPlace() = " + event.getFillAtPlace());
             if (event.getFillAtPlace() && !atPlace) {
-                LOGGER.log(Level.INFO, "Tried to check for editable params for event " + event.getClass().getSimpleName() + " at plan loading, but params are to be filled at place, returning false");
+                LOGGER.log(Level.FINE, "Tried to check for editable params for event " + event.getClass().getSimpleName() + " at plan loading, but params are to be filled at place, returning false");
                 return false;
             } else {
                 LOGGER.log(Level.FINE, "Checking for editable params for event " + event.getClass().getSimpleName());
