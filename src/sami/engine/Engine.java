@@ -10,6 +10,8 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import sami.config.DomainConfigManager;
+import sami.environment.EnvironmentListenerInt;
+import sami.environment.EnvironmentProperties;
 import sami.handler.EventHandlerInt;
 import sami.mission.MissionPlanSpecification;
 import sami.mission.Place;
@@ -73,8 +75,8 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
     private HashMap<UUID, PlanManager> missionIdToPlanManager = new HashMap<UUID, PlanManager>();
     // Configuration of output events and the handler classes that will execute them
     private Hashtable<Class, EventHandlerInt> handlers = new Hashtable<Class, EventHandlerInt>();
-
-    ;
+    private ArrayList<EnvironmentListenerInt> environmentListeners = new ArrayList<EnvironmentListenerInt>();
+    private EnvironmentProperties environmentProperties = null;
 
     private static class EngineHolder {
 
@@ -511,5 +513,20 @@ public class Engine implements ProxyServerListenerInt, ObserverServerListenerInt
             }
         }
         return planName;
+    }
+
+    public void addEnvironmentLister(EnvironmentListenerInt listener) {
+        environmentListeners.add(listener);
+    }
+
+    public EnvironmentProperties getEnvironmentProperties() {
+        return environmentProperties;
+    }
+
+    public void setEnvironmentProperties(EnvironmentProperties environmentProperties) {
+        this.environmentProperties = environmentProperties;
+        for (EnvironmentListenerInt listener : environmentListeners) {
+            listener.environmentUpdated();
+        }
     }
 }
