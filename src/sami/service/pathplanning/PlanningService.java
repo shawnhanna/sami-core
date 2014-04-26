@@ -107,7 +107,6 @@ public class PlanningService {
                 }
 
                 if (request.getOf() != null && request.getOf() instanceof DestinationUtmObjective) {
-                    PrintWriter out = null;
                     try {
                         DestinationUtmObjective objective = (DestinationUtmObjective) request.getOf();
                         ArrayList<Location> wps = new ArrayList<Location>();
@@ -115,28 +114,49 @@ public class PlanningService {
                         //  the proxy will spin in place indefinitely
                         Location start = objective.getStartLocation();
                         Location startOffset = new Location(new UTMCoordinate(start.getCoordinate().getNorthing() + 1, start.getCoordinate().getEasting(), start.getCoordinate().getZone()), start.getAltitude());
-//                        wps.add(startOffset);
+                        wps.add(startOffset);
 
                         String serverAddress = "localhost";
-                        Socket s = new Socket(serverAddress, 9090);
-                        out = new PrintWriter(s.getOutputStream(), true);
+                        Socket socket = new Socket(serverAddress, 9090);
+                        if (socket.isConnected()) {
+                            System.out.println("Connected to waypoint server");
+                        }
+
+                        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
                         BufferedReader input = new BufferedReader(new InputStreamReader(
-                                s.getInputStream()));
-                        out.println("get path");
+                                socket.getInputStream()));
+
+                        try {
+                            Thread.currentThread().sleep(100);
+                        } catch (Exception e) {
+                        }
+
+                        if (socket.isConnected()) {
+                            String s = "getpath " + start.getCoordinate().getEasting() + " " + start.getCoordinate().getNorthing() + " " + objective.getEndLocation().getCoordinate().getEasting() + " " + objective.getEndLocation().getCoordinate().getNorthing()+"\n";
+                            System.out.print("Sending 'get path request': " + s);
+                            out.print(s);
+                            out.println();
+                        }
+
                         ArrayList<Double> latitude = new ArrayList<Double>();
                         ArrayList<Double> longitude = new ArrayList<Double>();
                         try {
                             while (true) {
-                                String answer = input.readLine();
-                                if (answer.equals("points end")) {
+                                String response = "";
+//                                if (input.ready()) {
+                                response = input.readLine();
+//                                } else {
+//                                    System.out.println("Socket input stream not ready");
+//                                }s
+                                if (response.equals("points end")) {
                                     break;
                                 } else {
-                                    String[] array = answer.split(" ");
+                                    String[] array = response.split(" ");
                                     latitude.add(Double.parseDouble(array[0]));
                                     longitude.add(Double.parseDouble(array[1]));
-                                    Location newPose = new Location(new UTMCoordinate(latitude.get(latitude.size()-1), longitude.get(longitude.size()-1)), start.getAltitude());
+                                    Location newPose = new Location(new UTMCoordinate(latitude.get(latitude.size() - 1), longitude.get(longitude.size() - 1)), start.getAltitude());
                                     wps.add(newPose);
-                                    LOGGER.log(Level.INFO, "lat_long: " + latitude.get(latitude.size()-1) + " " + longitude.get(longitude.size()-1));
+                                    LOGGER.log(Level.INFO, "lat_long: " + latitude.get(latitude.size() - 1) + " " + longitude.get(longitude.size() - 1));
                                 }
                             }
                             System.out.println(latitude);
@@ -146,18 +166,18 @@ public class PlanningService {
                             Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
                         } finally {
                             LOGGER.log(Level.INFO, "closing connection to socket");
-                            if (s != null) {
+                            if (socket != null) {
                                 try {
                                     out.close();
                                     input.close();
-                                    s.close();
+                                    socket.close();
                                 } catch (IOException ex) {
                                     Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
                                 }
                             }
                         }
 
-//                    wps.add(objective.getEndLocation());
+                        wps.add(objective.getEndLocation());
                         PathUtm path = new PathUtm(wps);
                         ArrayList<PathUtm> altPaths = new ArrayList<PathUtm>();
                         for (int i = 1; i < request.getNoOptions(); i++) {
@@ -175,8 +195,6 @@ public class PlanningService {
                         l.responseRecieved(response);
                     } catch (IOException ex) {
                         Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
-                    } finally {
-                        out.close();
                     }
                 }
             }
