@@ -114,7 +114,7 @@ public class PlanningService {
                         //  the proxy will spin in place indefinitely
                         Location start = objective.getStartLocation();
                         Location startOffset = new Location(new UTMCoordinate(start.getCoordinate().getNorthing() + 1, start.getCoordinate().getEasting(), start.getCoordinate().getZone()), start.getAltitude());
-                        wps.add(startOffset);
+//                        wps.add(startOffset);
 
                         String serverAddress = "localhost";
                         Socket socket = new Socket(serverAddress, 9090);
@@ -132,7 +132,7 @@ public class PlanningService {
                         }
 
                         if (socket.isConnected()) {
-                            String s = "getpath " + start.getCoordinate().getEasting() + " " + start.getCoordinate().getNorthing() + " " + objective.getEndLocation().getCoordinate().getEasting() + " " + objective.getEndLocation().getCoordinate().getNorthing()+"\n";
+                            String s = "getpath " + startOffset.getCoordinate().getEasting() + " " + startOffset.getCoordinate().getNorthing() + " " + objective.getEndLocation().getCoordinate().getEasting() + " " + objective.getEndLocation().getCoordinate().getNorthing()+"\n";
                             System.out.print("Sending 'get path request': " + s);
                             out.print(s);
                             out.println();
@@ -176,8 +176,10 @@ public class PlanningService {
                                 }
                             }
                         }
+                        
+                        LOGGER.info("Received "+latitude.size()+" coordinates from the planner");
 
-                        wps.add(objective.getEndLocation());
+//                        wps.add(objective.getEndLocation());
                         PathUtm path = new PathUtm(wps);
                         ArrayList<PathUtm> altPaths = new ArrayList<PathUtm>();
                         for (int i = 1; i < request.getNoOptions(); i++) {
