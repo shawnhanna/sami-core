@@ -606,7 +606,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                             listsToRemove[2] = true;
                         }
                         break;
-                    case TakeAllTasks:
+                    case TakeTask:
                         listsToAdd[3] = true;
                         for (Place inPlace : transition.getInPlaces()) {
                             boolean[] listsToRemove = inPlaceToListsToRemove.get(inPlace);

@@ -52,12 +52,12 @@ public class UiFrame extends JFrame implements MarkupComponent {
     }
 
     @Override
-    public int getCreationComponentScore(Type type, ArrayList<Markup> markups) {
+    public int getCreationComponentScore(java.lang.reflect.Type type, ArrayList<Markup> markups) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public int getSelectionComponentScore(Type type, ArrayList<Markup> markups) {
+    public int getSelectionComponentScore(java.lang.reflect.Type type, ArrayList<Markup> markups) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -67,7 +67,7 @@ public class UiFrame extends JFrame implements MarkupComponent {
     }
 
     @Override
-    public MarkupComponent useCreationComponent(Type type, ArrayList<Markup> markups) {
+    public MarkupComponent useCreationComponent(java.lang.reflect.Type type, ArrayList<Markup> markups) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
