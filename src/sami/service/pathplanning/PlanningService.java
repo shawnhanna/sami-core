@@ -132,7 +132,7 @@ public class PlanningService {
                         }
 
                         if (socket.isConnected()) {
-                            String s = "getpath " + startOffset.getCoordinate().getEasting() + " " + startOffset.getCoordinate().getNorthing() + " " + objective.getEndLocation().getCoordinate().getEasting() + " " + objective.getEndLocation().getCoordinate().getNorthing()+"\n";
+                            String s = "getpath " + startOffset.getCoordinate().getEasting() + " " + startOffset.getCoordinate().getNorthing() + " " + objective.getEndLocation().getCoordinate().getEasting() + " " + objective.getEndLocation().getCoordinate().getNorthing() + "\n";
                             System.out.print("Sending 'get path request': " + s);
                             out.print(s);
                             out.println();
@@ -166,18 +166,17 @@ public class PlanningService {
                             Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
                         } finally {
                             LOGGER.log(Level.INFO, "closing connection to socket");
-                            if (socket != null) {
-                                try {
-                                    out.close();
-                                    input.close();
-                                    socket.close();
-                                } catch (IOException ex) {
-                                    Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
-                                }
+                            try {
+                                out.close();
+                                input.close();
+                                socket.close();
+                            } catch (IOException ex) {
+                                Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
                             }
+
                         }
-                        
-                        LOGGER.info("Received "+latitude.size()+" coordinates from the planner");
+
+                        LOGGER.info("Received " + latitude.size() + " coordinates from the planner");
 
 //                        wps.add(objective.getEndLocation());
                         PathUtm path = new PathUtm(wps);
