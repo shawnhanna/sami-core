@@ -49,9 +49,9 @@ public class InformationServer {
             canceled = canceled || c;
         }
         if (canceled) {
-            LOGGER.log(Level.INFO, "Canceling: " + sub);
+            LOGGER.log(Level.FINE, "Canceling: " + sub);
         } else {
-            LOGGER.log(Level.INFO, "No service for: " + sub);
+            LOGGER.log(Level.FINE, "No service for: " + sub);
         }
     }
 }

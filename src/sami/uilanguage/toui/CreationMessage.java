@@ -22,6 +22,6 @@ public abstract class CreationMessage extends ToUiMessage {
     }
     
     public String toString() {
-        return "CreationMessage, eventSpecToFieldDescriptions: " + eventSpecToFieldDescriptions;
+        return "CreationMessage [" + eventSpecToFieldDescriptions + "]";
     }
 }

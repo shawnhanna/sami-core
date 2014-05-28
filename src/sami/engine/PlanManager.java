@@ -71,7 +71,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     public final UUID missionId;
 
     public PlanManager(final MissionPlanSpecification mSpec, UUID missionId, String planName) {
-        LOGGER.log(Level.INFO, "Creating PlanManager for mSpec " + mSpec + " with mission ID " + missionId + " and planName " + planName);
+        LOGGER.info("Creating PlanManager for mSpec " + mSpec + " with mission ID " + missionId + " and planName " + planName);
         this.mSpec = mSpec;
         this.missionId = missionId;
         this.planName = planName;
@@ -189,7 +189,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             abortTransition.addOutPlace(abortPlace);
             abortPlace.addInTransition(abortTransition);
         } else {
-            LOGGER.log(Level.INFO, "No missing params, instantiating plan");
+            LOGGER.info("No missing params, instantiating plan");
             if (!mSpec.isInstantiated()) {
                 mSpec.instantiate(missionId);
             }
@@ -197,7 +197,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
 
         // Load TokenSpecifications from the spec and put the corresponding Token in the appropriate edges
         //@todo Should this be in plan.getInstantiatedStart() instead ?
-        LOGGER.log(Level.INFO, "Loading tokens from edge token specifications");
+        LOGGER.log(Level.FINE, "Loading tokens from edge token specifications");
         Token token;
         Collection<Edge> edges = mSpec.getGraph().getEdges();
         Map<Edge, ArrayList<TokenSpecification>> edgeToTokenSpecs = mSpec.getEdgeToTokenSpecListMap();
@@ -259,7 +259,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
      * @param plan
      */
     public void start(ArrayList<Token> startingTokens) {
-        LOGGER.log(Level.INFO, "Begin plan start");
+        LOGGER.log(Level.FINE, "Begin plan start");
         while (!generatedEventThread.isAlive()) {
             LOGGER.log(Level.WARNING, "generatedEventThread is not alive, sleeping for 1s");
             try {
@@ -272,11 +272,11 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         boolean checkedForTransition = false;
         // Add in any starting tokens to the start place
         if (startingTokens != null) {
-            LOGGER.log(Level.INFO, "\tAdding received token list " + startingTokens + " to start place " + startPlace);
+            LOGGER.log(Level.FINE, "\tAdding received token list " + startingTokens + " to start place " + startPlace);
             enterPlace(startPlace, startingTokens, true);
             checkedForTransition = true;
         } else {
-            LOGGER.log(Level.INFO, "\tNo token list received for start place " + startPlace + ", using default list " + defaultStartTokens);
+            LOGGER.log(Level.FINE, "\tNo token list received for start place " + startPlace + ", using default list " + defaultStartTokens);
             enterPlace(startPlace, defaultStartTokens, true);
             checkedForTransition = true;
         }
@@ -290,12 +290,12 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             }
         }
 
-        LOGGER.log(Level.INFO, "Plan has finished starting");
+        LOGGER.log(Level.FINE, "Plan has finished starting");
         Engine.getInstance().started(this);
     }
 
     private synchronized HashMap<Place, ArrayList<Token>> checkTransition(Transition transition) {
-        LOGGER.log(Level.INFO, "Checking " + transition);
+        LOGGER.log(Level.FINE, "Checking " + transition);
         String debug = "input event fulfillment is currently:";
         for (InputEvent ie : transition.getInputEvents()) {
             debug += "\n\t" + ie + ": " + transition.getInputEventStatus(ie);
@@ -312,7 +312,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         LOGGER.log(Level.FINE, "\tChecking for input events: " + inputEvents);
         for (InputEvent ie : inputEvents) {
             if (!transition.getInputEventStatus(ie)) {
-                LOGGER.log(Level.INFO, "\t\tInput event " + ie + " is not ready");
+                LOGGER.log(Level.FINE, "\t\tInput event " + ie + " is not ready");
                 failure = true;
                 break;
             } else {
@@ -338,7 +338,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                 // Check that if there is a sub-mission that it has completed
                 ////
                 if (place.getSubMission() != null && !place.getSubMissionComplete()) {
-                    LOGGER.log(Level.INFO, "\tSub-mission " + place.getSubMission() + " is not yet complete");
+                    LOGGER.log(Level.FINE, "\tSub-mission " + place.getSubMission() + " is not yet complete");
                     failure = true;
                     break check;
                 } else if (place.getSubMission() != null && place.getSubMissionComplete()) {
@@ -459,21 +459,15 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     }
 
     private synchronized void executeTransition(Transition transition, HashMap<Place, ArrayList<Token>> matchedTokens) {
-        LOGGER.log(Level.INFO, "Executing " + transition + ", have matched tokens " + matchedTokens + ", inPlaces: " + transition.getInPlaces() + ", inEdges: " + transition.getInEdges() + ", outPlaces: " + transition.getOutPlaces() + ", outEdges: " + transition.getOutEdges());
+        LOGGER.info("Executing " + transition + ", have matched tokens " + matchedTokens + ", inPlaces: " + transition.getInPlaces() + ", inEdges: " + transition.getInEdges() + ", outPlaces: " + transition.getOutPlaces() + ", outEdges: " + transition.getOutEdges());
 
         synchronized (placesBeingEntered) {
             for (Place place : transition.getInPlaces()) {
                 if (placesBeingEntered.contains(place)) {
-                    LOGGER.log(Level.INFO, "\tAborting executeTransition becaues an incoming place is still being entered: " + place);
+                    LOGGER.log(Level.FINE, "\tAborting executeTransition becaues an incoming place is still being entered: " + place);
                     return;
                 }
             }
-        }
-
-        try {
-            Thread.sleep(GuiConfig.TRANSITION_DELAY);
-        } catch (InterruptedException ie) {
-            ie.printStackTrace();
         }
 
         // Get lists of various token groups ready ahead of time
@@ -579,7 +573,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
 
             ArrayList<Token> taskTokensToAdd = outPlaceToTaskTokensToAdd.get(place);
             Integer genericToAdd = outPlaceToGenericToAdd.get(place);
-            // boolean[3] corrensponds to add/remove [ All, RelevantTasks, RelevantProxies ]
+            // boolean[5] corrensponds to add/remove [ All, RelevantTasks, RelevantProxies, TakeTask, TakeProxy ]
             boolean[] listsToAdd = outPlaceToListsToAdd.get(place);
 
             token:
@@ -846,7 +840,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         ////
         // Now we can check the transitions we added tokens to
         ////
-        LOGGER.log(Level.INFO, "\tDone executing " + transition + ", checking for new transitions");
+        LOGGER.log(Level.FINE, "\tDone executing " + transition + ", checking for new transitions");
         for (Place outPlace : transition.getOutPlaces()) {
             for (Transition t2 : outPlace.getOutTransitions()) {
                 HashMap<Place, ArrayList<Token>> tokensToRemove2 = checkTransition(t2);
@@ -858,7 +852,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     }
 
     private synchronized void leavePlace(Place place, ArrayList<Token> tokens) {
-        LOGGER.log(Level.INFO, "Leaving " + place + " with " + place.getTokens() + " and taking " + tokens);
+        LOGGER.info("Leaving " + place + " with " + place.getTokens() + " and taking " + tokens);
 
         // Remove Edge specified Tokens from Place
         for (Token token : tokens) {
@@ -908,15 +902,8 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         }
     }
 
-    private synchronized void enterPlace(Place place, Token token, boolean checkForTransition) {
-        ArrayList<Token> tokens = new ArrayList<Token>();
-        tokens.add(token);
-        LOGGER.info("enter place 4");
-        enterPlace(place, tokens, checkForTransition);
-    }
-
     private synchronized void enterPlace(Place place, ArrayList<Token> tokens, boolean checkForTransition) {
-        LOGGER.log(Level.INFO, "Entering " + place + " with Tokens: " + tokens + " with checkForTransition: " + checkForTransition + ", getInTransitions: " + place.getInTransitions() + ", inEdges: " + place.getInEdges() + ", getOutTransitions: " + place.getOutTransitions() + ", outEdges: " + place.getOutEdges());
+        LOGGER.info("Entering " + place + " with Tokens: " + tokens + " with checkForTransition: " + checkForTransition + ", getInTransitions: " + place.getInTransitions() + ", inEdges: " + place.getInEdges() + ", getOutTransitions: " + place.getOutTransitions() + ", outEdges: " + place.getOutEdges());
 
         // 1 - Make note that this place should finish being entered before any of its
         //  transitions are actually executed
@@ -952,7 +939,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
 
         // 5 - Check for sub-missions and start them if required
         if (place.getSubMission() != null) {
-            LOGGER.log(Level.INFO, "\tStarting submission " + place.getSubMission());
+            LOGGER.info("\tStarting submission " + place.getSubMission());
             PlanManager planManager = Engine.getInstance().spawnMission(place.getSubMission(), tokens);
             planManagerToPlace.put(planManager, place);
             Engine.getInstance().addListener(this);
@@ -978,7 +965,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
 
         // 9 - Check if we are at an end place
         if (place.isEnd()) {
-            LOGGER.log(Level.INFO, "\tReached an end place: " + place);
+            LOGGER.log(Level.FINE, "\tReached an end place: " + place);
             boolean end = true;
             for (Vertex v : mSpec.getGraph().getVertices()) {
                 if (v instanceof Place) {
@@ -986,7 +973,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                     if ((checkPlace.getFunctionMode() == FunctionMode.HiddenRecovery || checkPlace.getFunctionMode() == FunctionMode.Recovery)
                             && checkPlace.getTokens().size() > 0
                             && !checkPlace.isEnd()) {
-                        LOGGER.log(Level.INFO, "\t\tRecovery place has tokens in it! " + checkPlace);
+                        LOGGER.info("\t\tRecovery place has tokens in it! " + checkPlace);
                         end = false;
                     }
                 }
@@ -999,7 +986,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
 
     private void processOutputEvents(ArrayList<OutputEvent> outputEvents, ArrayList<Token> tokens) {
         for (OutputEvent oe : outputEvents) {
-            LOGGER.log(Level.INFO, "Processing event " + oe + " with input variables " + oe.getVariables());
+            LOGGER.log(Level.FINE, "Processing event " + oe + " with input variables " + oe.getVariables());
             // Write in values for any fields that were filled with a variable name
             if (oe.getVariables() != null) {
                 for (String variableName : oe.getVariables().keySet()) {
@@ -1019,12 +1006,12 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
 
                 }
             } else {
-                LOGGER.log(Level.INFO, "\tNo variables for " + oe);
+                LOGGER.log(Level.FINE, "\tNo variables for " + oe);
             }
             // Find and invoke an appropriate handler
             EventHandlerInt eh = Engine.getInstance().getHandler(oe.getClass());
             if (eh != null) {
-                LOGGER.log(Level.INFO, "Invoking handler: " + eh + " for OE: " + oe);
+                LOGGER.log(Level.FINE, "Invoking handler: " + eh + " for OE: " + oe);
                 eh.invoke(oe, tokens);
             } else {
                 LOGGER.log(Level.SEVERE, "No handler for event of type " + oe.getClass());
@@ -1043,11 +1030,11 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     }
 
     public void finishMission(Place endPlace) {
-        LOGGER.log(Level.INFO, "We reached an end state: " + endPlace);
+        LOGGER.info("Finishing plan at end place [" + endPlace + "]");
         Engine.getInstance().done(this);
         // Unregister any IEs still active
         for (InputEvent ie : activeInputEvents) {
-            LOGGER.log(Level.INFO, "\tUnregistering active input event:" + ie);
+            LOGGER.log(Level.FINE, "\tUnregistering active input event:" + ie);
             InputEventMapper.getInstance().unregisterEvent(ie);
         }
         activeInputEvents.clear();
@@ -1066,7 +1053,7 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
     }
 
     public void processGeneratedEvent(InputEvent generatedEvent) {
-        LOGGER.log(Level.INFO, "Processing generated event " + generatedEvent + " with event UUID " + generatedEvent.getId() + " mission UUID " + generatedEvent.getMissionId() + " and relevant proxy " + generatedEvent.getRelevantProxyList());
+        LOGGER.log(Level.FINE, "Processing generated event " + generatedEvent + " with event UUID " + generatedEvent.getId() + " mission UUID " + generatedEvent.getMissionId() + " and relevant proxy " + generatedEvent.getRelevantProxyList());
         if (generatedEvent.getMissionId() == null) {
             LOGGER.log(Level.FINE, "\tGenerated event has no mission UUID");
         } else {
@@ -1225,13 +1212,13 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
                                     //  it will be checked and matched - we don't want to add it to matchingEvents a second time here
                                     matchingEvents.add(matchingClonedEvent);
                                     match = true;
-                                    LOGGER.log(Level.INFO, "\t\t\tMatching success on relevant proxy: " + proxy);
+                                    LOGGER.log(Level.FINE, "\t\t\tMatching success on relevant proxy: " + proxy);
                                 } else if (transition.getInputEventStatus(matchingClonedEvent)) {
                                     match = true;
                                     LOGGER.log(Level.WARNING, "\t\t\tMatching success on relevant proxy: " + proxy + ", but the corresponding cloned IE was already marked as having occurred!");
                                 } else if (!createdClones.contains(matchingClonedEvent)) {
                                     match = true;
-                                    LOGGER.log(Level.INFO, "\t\t\tMatching success on relevant proxy: " + proxy + ", but the corresponding cloned IE was already created!");
+                                    LOGGER.log(Level.FINE, "\t\t\tMatching success on relevant proxy: " + proxy + ", but the corresponding cloned IE was already created!");
                                 }
                             }
                         }
@@ -1274,10 +1261,10 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
             }
         }
 
-        LOGGER.log(Level.INFO, "\tResult of comparisons: add " + clonedEventsToAdd.size() + ", remove " + eventsToRemove.size() + ", update " + matchingEvents.size());
+        LOGGER.log(Level.FINE, "\tResult of comparisons: add " + clonedEventsToAdd.size() + ", remove " + eventsToRemove.size() + ", update " + matchingEvents.size());
 
         for (InputEvent ie : clonedEventsToAdd.keySet()) {
-            LOGGER.log(Level.INFO, "\t\tAdding " + ie);
+            LOGGER.log(Level.FINE, "\t\tAdding " + ie);
             activeInputEvents.add(ie);
             Transition t = clonedEventsToAdd.get(ie);
             t.addInputEvent(ie);
@@ -1285,23 +1272,23 @@ public class PlanManager implements GeneratedEventListenerInt, PlanManagerListen
         }
         for (InputEvent ie : eventsToRemove) {
             // THIS LIST IS NEVER MODIFIED
-            LOGGER.log(Level.INFO, "\t\tRemoving " + ie);
+            LOGGER.log(Level.FINE, "\t\tRemoving " + ie);
             activeInputEvents.remove(ie);
             Transition t = inputEventToTransitionMap.get(ie);
             t.removeInputEvent(ie);
             inputEventToTransitionMap.remove(ie);
         }
         for (InputEvent ie : matchingEvents) {
-            LOGGER.log(Level.INFO, "\t\tUpdating " + ie);
+            LOGGER.log(Level.FINE, "\t\tUpdating " + ie);
             ie.setGeneratorEvent(generatedEvent);
             // Handle updated event
             processUpdatedParamEvent(ie);
         }
-        LOGGER.log(Level.INFO, "\tFinished handling generated event: " + generatedEvent);
+        LOGGER.log(Level.FINE, "\tFinished handling generated event: " + generatedEvent);
     }
 
     public void processUpdatedParamEvent(InputEvent updatedParamEvent) {
-        LOGGER.log(Level.INFO, "Processing updated param event " + updatedParamEvent + " with UUID " + updatedParamEvent.getId() + " and relevant proxy " + updatedParamEvent.getRelevantProxyList());
+        LOGGER.log(Level.FINE, "@STAT Processing updated param event " + updatedParamEvent + " with UUID " + updatedParamEvent.getId() + " and relevant proxy " + updatedParamEvent.getRelevantProxyList());
 
         InputEvent generatorEvent = updatedParamEvent.getGeneratorEvent();
         if (!inputEventToTransitionMap.containsKey(updatedParamEvent)) {

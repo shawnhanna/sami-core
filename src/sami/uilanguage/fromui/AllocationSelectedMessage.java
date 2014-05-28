@@ -23,4 +23,8 @@ public class AllocationSelectedMessage extends FromUiMessage {
     public void setAllocation(ResourceAllocation allocation) {
         this.allocation = allocation;
     }
+
+    public String toString() {
+        return "AllocationSelectedMessage [" + allocation + "]";
+    }
 }

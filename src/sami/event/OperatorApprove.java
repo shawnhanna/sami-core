@@ -19,4 +19,8 @@ public class OperatorApprove extends OutputEvent {
     public OperatorApprove() {
         id = UUID.randomUUID();
     }
+
+    public String toString() {
+        return "OperatorApprove";
+    }
 }

@@ -32,4 +32,7 @@ public class StartTimer extends OutputEvent {
         id = UUID.randomUUID();
     }
 
+    public String toString() {
+        return "StartTimer [" + timerDuration + "]";
+    }
 }

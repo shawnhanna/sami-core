@@ -23,4 +23,8 @@ public class SendSoftRestartMission extends OutputEvent {
         this.missionId = missionId;
         id = UUID.randomUUID();
     }
+
+    public String toString() {
+        return "SendSoftRestartMission [" + missionId + "]";
+    }
 }

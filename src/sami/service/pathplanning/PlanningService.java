@@ -58,7 +58,7 @@ public class PlanningService {
         (new Thread() {
             public void run() {
 
-                LOGGER.log(Level.INFO, "Got request for " + request.getNoOptions() + " paths", this);
+                LOGGER.log(Level.FINE, "Got request for " + request.getNoOptions() + " paths", this);
 
                 if (request.getEm() instanceof Continuous3DEnvironment) {
 
@@ -114,8 +114,9 @@ public class PlanningService {
                         //  the proxy will spin in place indefinitely
                         Location start = objective.getStartLocation();
                         Location startOffset = new Location(new UTMCoordinate(start.getCoordinate().getNorthing() + 1, start.getCoordinate().getEasting(), start.getCoordinate().getZone()), start.getAltitude());
-//                        wps.add(startOffset);
+                        //wps.add(startOffset);
 
+                        //Code to receive lat/long waypoints from the SBPL planner
                         String serverAddress = "localhost";
                         Socket socket = new Socket(serverAddress, 9090);
                         if (socket.isConnected()) {
@@ -143,11 +144,11 @@ public class PlanningService {
                         try {
                             while (true) {
                                 String response = "";
-//                                if (input.ready()) {
+                                //if (input.ready()) {
                                 response = input.readLine();
-//                                } else {
-//                                    System.out.println("Socket input stream not ready");
-//                                }s
+								// } else {
+								// 	System.out.println("Socket input stream not ready");
+								// }
                                 if (response.equals("points end")) {
                                     break;
                                 } else {
@@ -197,6 +198,10 @@ public class PlanningService {
                     } catch (IOException ex) {
                         Logger.getLogger(PlanningService.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    PlanningServiceResponse response = new PlanningServiceResponse(path, altPaths);
+
+                    LOGGER.log(Level.FINE, "Responses: " + (response.getAlternatives() == null ? 1 : response.getAlternatives().size() + 1), this);
+                    l.responseRecieved(response);
                 }
             }
         }).start();

@@ -44,6 +44,6 @@ public abstract class SelectionMessage extends ToUiMessage {
     }
 
     public String toString() {
-        return "SelectionMessage, allowMultiple: " + allowMultiple + ", allowRejection: " + allowRejection + ", optionsList: " + optionsList;
+        return "SelectionMessage [" + allowMultiple + ", " + allowRejection + ", " + showOptionsIndividually + ", " + optionsList + "]";
     }
 }

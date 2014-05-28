@@ -51,12 +51,24 @@ public class UiFrame extends JFrame implements MarkupComponent {
         supportedMarkups.add(Attention.AttentionType.HIGHLIGHT);
     }
 
+    @Override
+    public int getCreationComponentScore(java.lang.reflect.Type type, ArrayList<Markup> markups) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
+    @Override
+    public int getSelectionComponentScore(java.lang.reflect.Type type, ArrayList<Markup> markups) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
     @Override
     public int getMarkupScore(ArrayList<Markup> markups) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public MarkupComponent useCreationComponent(java.lang.reflect.Type type, ArrayList<Markup> markups) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
     @Override
     public MarkupComponent useSelectionComponent(Object selectionObject, ArrayList<Markup> markups) {
